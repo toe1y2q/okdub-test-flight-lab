@@ -14,10 +14,10 @@ interface LeaderboardEntry {
   points: number;
   weekly_points: number;
   profiles: {
-    first_name: string;
-    last_name: string;
-    wallet_address: string;
-  };
+    first_name: string | null;
+    last_name: string | null;
+    wallet_address: string | null;
+  } | null;
 }
 
 const Leaderboard = () => {
@@ -34,7 +34,7 @@ const Leaderboard = () => {
         .from('leaderboard_stats')
         .select(`
           *,
-          profiles:user_id (
+          profiles!inner (
             first_name,
             last_name,
             wallet_address

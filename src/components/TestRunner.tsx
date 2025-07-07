@@ -7,10 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Rocket, Zap, Shield, Activity } from 'lucide-react';
 
 const TestRunner = () => {
+  const { user } = useAuth();
   const [testType, setTestType] = useState('token_transfer');
   const [network, setNetwork] = useState('sepolia');
   const [isRunning, setIsRunning] = useState(false);
@@ -37,6 +39,11 @@ const TestRunner = () => {
   ];
 
   const runTest = async () => {
+    if (!user) {
+      toast.error('Please sign in to run tests');
+      return;
+    }
+
     setIsRunning(true);
     
     try {
@@ -44,6 +51,7 @@ const TestRunner = () => {
       const { data, error } = await supabase
         .from('test_runs')
         .insert({
+          user_id: user.id,
           test_type: testType,
           network,
           status: 'pending'
@@ -74,8 +82,23 @@ const TestRunner = () => {
           })
           .eq('id', data.id);
 
-        // Update leaderboard stats
-        await supabase.rpc('increment_test_stats');
+        // Update leaderboard stats manually
+        const { data: stats } = await supabase
+          .from('leaderboard_stats')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (stats) {
+          await supabase
+            .from('leaderboard_stats')
+            .update({
+              total_tests: stats.total_tests + 1,
+              points: stats.points + 10,
+              last_activity: new Date().toISOString()
+            })
+            .eq('user_id', user.id);
+        }
 
         toast.success(`Test completed! Tx: ${mockTxHash.substring(0, 10)}...`);
         setIsRunning(false);

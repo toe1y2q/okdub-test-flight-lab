@@ -6,10 +6,12 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Palette, Upload, Sparkles } from 'lucide-react';
 
 const NFTMinter = () => {
+  const { user } = useAuth();
   const [isMinting, setIsMinting] = useState(false);
   const [nftData, setNftData] = useState({
     name: '',
@@ -25,6 +27,11 @@ const NFTMinter = () => {
   };
 
   const mintNFT = async () => {
+    if (!user) {
+      toast.error('Please sign in to mint NFTs');
+      return;
+    }
+
     if (!nftData.name || !nftData.description) {
       toast.error('Please fill in all required fields');
       return;
@@ -57,6 +64,7 @@ const NFTMinter = () => {
       const { data, error } = await supabase
         .from('nft_mints')
         .insert({
+          user_id: user.id,
           name: nftData.name,
           description: nftData.description,
           image_url: imageUrl,
