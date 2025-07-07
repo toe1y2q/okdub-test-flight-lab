@@ -9,7 +9,162 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      leaderboard_stats: {
+        Row: {
+          created_at: string
+          id: string
+          last_activity: string
+          points: number
+          success_rate: number
+          total_nfts: number
+          total_tests: number
+          updated_at: string
+          user_id: string
+          weekly_points: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_activity?: string
+          points?: number
+          success_rate?: number
+          total_nfts?: number
+          total_tests?: number
+          updated_at?: string
+          user_id: string
+          weekly_points?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_activity?: string
+          points?: number
+          success_rate?: number
+          total_nfts?: number
+          total_tests?: number
+          updated_at?: string
+          user_id?: string
+          weekly_points?: number
+        }
+        Relationships: []
+      }
+      nft_mints: {
+        Row: {
+          contract_address: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          metadata_url: string | null
+          minted_at: string | null
+          name: string
+          network: string
+          status: string
+          token_id: string | null
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          contract_address?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          metadata_url?: string | null
+          minted_at?: string | null
+          name: string
+          network?: string
+          status?: string
+          token_id?: string | null
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          contract_address?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          metadata_url?: string | null
+          minted_at?: string | null
+          name?: string
+          network?: string
+          status?: string
+          token_id?: string | null
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string
+          wallet_address: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          updated_at?: string
+          wallet_address?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      test_runs: {
+        Row: {
+          block_number: number | null
+          completed_at: string | null
+          created_at: string
+          gas_used: number | null
+          id: string
+          network: string
+          status: string
+          test_type: string
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          block_number?: number | null
+          completed_at?: string | null
+          created_at?: string
+          gas_used?: number | null
+          id?: string
+          network: string
+          status?: string
+          test_type: string
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          block_number?: number | null
+          completed_at?: string | null
+          created_at?: string
+          gas_used?: number | null
+          id?: string
+          network?: string
+          status?: string
+          test_type?: string
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
