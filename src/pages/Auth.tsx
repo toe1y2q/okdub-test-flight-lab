@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -35,13 +34,13 @@ const Auth = () => {
         if (error) throw error;
         
         toast.success('Welcome back to Okdub!');
-        navigate('/');
+        navigate('/dashboard');
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}/dashboard`,
             data: {
               first_name: firstName,
               last_name: lastName,
@@ -53,7 +52,7 @@ const Auth = () => {
         if (error) throw error;
         
         toast.success('Account created! Check your email to verify.');
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (error: any) {
       console.error('Auth error:', error);

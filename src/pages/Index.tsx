@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -6,10 +7,21 @@ import { ArrowDown, Plus, Search, Zap, Rocket, Shield } from 'lucide-react';
 import { WalletConnection } from '@/components/WalletConnection';
 import { Starfield } from '@/components/Starfield';
 import { GlassPanel } from '@/components/GlassPanel';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
+  const { isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [loading, isAuthenticated, navigate]);
 
   // Fixed animation variants with proper types
   const containerVariants: Variants = {
@@ -47,6 +59,18 @@ const Index = () => {
     }
   };
 
+  // Show loading while checking auth state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-poppins flex items-center justify-center">
+        <Starfield />
+        <div className="relative z-10">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-400"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-poppins">
       <Starfield />
@@ -76,7 +100,7 @@ const Index = () => {
         
         <div className="flex items-center space-x-4">
           <Button
-            onClick={() => window.location.href = '/auth'}
+            onClick={() => navigate('/auth')}
             variant="outline"
             className="border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10 font-semibold"
           >
@@ -151,7 +175,7 @@ const Index = () => {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Button
-              onClick={() => window.location.href = '/auth'}
+              onClick={() => navigate('/auth')}
               size="lg"
               className="px-10 py-5 text-xl font-bold bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 shadow-2xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-300 border border-cyan-400/30"
             >
