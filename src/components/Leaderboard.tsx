@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
@@ -30,16 +29,9 @@ const Leaderboard = () => {
 
   const fetchLeaderboard = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: leaderboardData, error } = await supabase
         .from('leaderboard_stats')
-        .select(`
-          *,
-          profiles (
-            first_name,
-            last_name,
-            wallet_address
-          )
-        `)
+        .select('*')
         .order('points', { ascending: false })
         .limit(10);
 
@@ -47,8 +39,25 @@ const Leaderboard = () => {
         console.error('Leaderboard query error:', error);
         throw error;
       }
+
+      // Fetch profiles separately to avoid join issues
+      const userIds = leaderboardData?.map(entry => entry.user_id) || [];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, wallet_address')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Profiles query error:', profilesError);
+      }
+
+      // Combine the data
+      const combinedData = leaderboardData?.map(entry => ({
+        ...entry,
+        profiles: profilesData?.find(profile => profile.id === entry.user_id) || null
+      })) || [];
       
-      setLeaderboard(data || []);
+      setLeaderboard(combinedData);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
     } finally {
