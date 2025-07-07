@@ -10,7 +10,7 @@ import { GlassPanel } from '@/components/GlassPanel';
 import TestRunner from '@/components/TestRunner';
 import NFTMinter from '@/components/NFTMinter';
 import Leaderboard from '@/components/Leaderboard';
-import { LogOut, Zap, Image, Trophy, Gift, Settings } from 'lucide-react';
+import { LogOut, Zap, Image, Trophy, Gift, Settings, DollarSign } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, loading, signOut, isAuthenticated } = useAuth();
@@ -76,6 +76,15 @@ const Dashboard = () => {
         <div className="flex items-center space-x-4">
           <div className="hidden md:flex items-center space-x-2">
             <Button
+              onClick={() => navigate('/balance')}
+              variant="outline"
+              size="sm"
+              className="border-green-400/30 text-green-400 hover:bg-green-400/10"
+            >
+              <DollarSign className="w-4 h-4 mr-2" />
+              Balance
+            </Button>
+            <Button
               onClick={() => navigate('/nfts')}
               variant="outline"
               size="sm"
@@ -132,8 +141,17 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 md:hidden"
+          className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8 md:hidden"
         >
+          <Card 
+            className="p-4 backdrop-blur-xl bg-white/5 border border-white/10 hover:border-green-500/30 transition-all duration-300 cursor-pointer"
+            onClick={() => navigate('/balance')}
+          >
+            <div className="flex items-center space-x-3">
+              <DollarSign className="w-6 h-6 text-green-400" />
+              <span className="text-white font-medium">Balance</span>
+            </div>
+          </Card>
           <Card 
             className="p-4 backdrop-blur-xl bg-white/5 border border-white/10 hover:border-purple-500/30 transition-all duration-300 cursor-pointer"
             onClick={() => navigate('/nfts')}
