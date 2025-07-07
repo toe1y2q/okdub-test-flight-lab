@@ -34,7 +34,7 @@ const Leaderboard = () => {
         .from('leaderboard_stats')
         .select(`
           *,
-          profiles!inner (
+          profiles (
             first_name,
             last_name,
             wallet_address
@@ -43,7 +43,11 @@ const Leaderboard = () => {
         .order('points', { ascending: false })
         .limit(10);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Leaderboard query error:', error);
+        throw error;
+      }
+      
       setLeaderboard(data || []);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
