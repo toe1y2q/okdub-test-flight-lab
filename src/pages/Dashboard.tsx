@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,7 +11,7 @@ import Leaderboard from '@/components/Leaderboard';
 import NFTMinter from '@/components/NFTMinter';
 import TestingEngine from '@/components/TestingEngine';
 import TokenGatedAccess from '@/components/TokenGatedAccess';
-import { LogOut, Zap, TrendingUp, Trophy, Palette, Code, Briefcase, Bug, ShoppingBag, Coins } from 'lucide-react';
+import { LogOut, Zap, TrendingUp, Trophy, Palette, Code, Briefcase, Bug, ShoppingBag, Coins, DollarSign, Wallet } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, loading, signOut, isAuthenticated } = useAuth();
@@ -20,6 +21,10 @@ const Dashboard = () => {
     totalTests: 0,
     totalNfts: 0,
     successRate: 0
+  });
+  const [balance, setBalance] = useState({
+    cashBalance: 0,
+    totalEarned: 0
   });
 
   useEffect(() => {
@@ -52,6 +57,20 @@ const Dashboard = () => {
         totalTests: leaderboardData?.total_tests || 0,
         totalNfts: leaderboardData?.total_nfts || 0,
         successRate: leaderboardData?.success_rate || 0
+      });
+
+      // Fetch balance data
+      const { data: balanceData, error: balanceError } = await supabase
+        .from('user_balances')
+        .select('cash_balance, total_earned')
+        .eq('user_id', user.id)
+        .single();
+
+      if (balanceError && balanceError.code !== 'PGRST116') throw balanceError;
+
+      setBalance({
+        cashBalance: balanceData?.cash_balance || 0,
+        totalEarned: balanceData?.total_earned || 0
       });
     } catch (error) {
       console.error('Error fetching user stats:', error);
@@ -149,7 +168,7 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8"
         >
           <Card className="p-6 backdrop-blur-xl bg-white/5 border border-white/10 hover:border-cyan-500/30 transition-all duration-300">
             <div className="flex items-center space-x-4">
@@ -195,6 +214,36 @@ const Dashboard = () => {
               <div>
                 <p className="text-sm text-gray-400">NFTs Minted</p>
                 <p className="text-2xl font-bold text-pink-400">{stats.totalNfts}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card 
+            className="p-6 backdrop-blur-xl bg-white/5 border border-white/10 hover:border-green-500/30 transition-all duration-300 cursor-pointer"
+            onClick={() => navigate('/balance')}
+          >
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-green-500/20 rounded-lg">
+                <DollarSign className="w-6 h-6 text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Cash Balance</p>
+                <p className="text-2xl font-bold text-green-400">${balance.cashBalance.toFixed(2)}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card 
+            className="p-6 backdrop-blur-xl bg-white/5 border border-white/10 hover:border-emerald-500/30 transition-all duration-300 cursor-pointer"
+            onClick={() => navigate('/balance')}
+          >
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-emerald-500/20 rounded-lg">
+                <Wallet className="w-6 h-6 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Total Earned</p>
+                <p className="text-2xl font-bold text-emerald-400">${balance.totalEarned.toFixed(2)}</p>
               </div>
             </div>
           </Card>
