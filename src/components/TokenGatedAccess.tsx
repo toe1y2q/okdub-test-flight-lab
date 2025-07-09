@@ -70,7 +70,7 @@ const TokenGatedAccess = () => {
       // Transform the data to match our SubscriptionTier interface
       const transformedTiers = data?.map(tier => ({
         ...tier,
-        features: tier.features as SubscriptionTierFeatures
+        features: tier.features as unknown as SubscriptionTierFeatures
       })) || [];
       
       setSubscriptionTiers(transformedTiers);
