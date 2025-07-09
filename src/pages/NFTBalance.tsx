@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Starfield } from '@/components/Starfield';
-import { LogOut, Zap, Image, ExternalLink, Copy } from 'lucide-react';
+import { LogOut, Zap, Image, ExternalLink, Copy, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface NFTMint {
@@ -20,6 +20,8 @@ interface NFTMint {
   tx_hash: string | null;
   network: string;
   status: string;
+  price: number | null;
+  for_sale: boolean | null;
   created_at: string;
   minted_at: string | null;
 }
@@ -126,6 +128,14 @@ const NFTBalance = () => {
             Dashboard
           </Button>
           <Button
+            onClick={() => navigate('/marketplace')}
+            variant="outline"
+            size="sm"
+            className="border-purple-400/30 text-purple-400 hover:bg-purple-400/10"
+          >
+            Marketplace
+          </Button>
+          <Button
             onClick={handleSignOut}
             variant="outline"
             size="sm"
@@ -181,7 +191,7 @@ const NFTBalance = () => {
                 whileHover={{ scale: 1.02, y: -5 }}
               >
                 <Card className="p-4 backdrop-blur-xl bg-white/5 border border-white/10 hover:border-cyan-500/30 transition-all duration-300 h-full">
-                  <div className="aspect-square bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                  <div className="aspect-square bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-lg mb-4 flex items-center justify-center overflow-hidden relative">
                     {nft.image_url ? (
                       <img 
                         src={nft.image_url} 
@@ -190,6 +200,12 @@ const NFTBalance = () => {
                       />
                     ) : (
                       <Image className="w-12 h-12 text-gray-400" />
+                    )}
+                    
+                    {nft.for_sale && (
+                      <div className="absolute top-2 right-2 bg-green-500/80 text-white text-xs px-2 py-1 rounded">
+                        For Sale
+                      </div>
                     )}
                   </div>
                   
@@ -209,6 +225,12 @@ const NFTBalance = () => {
                         {nft.status}
                       </span>
                     </div>
+
+                    {nft.for_sale && nft.price && (
+                      <div className="text-sm text-green-400 font-semibold">
+                        Price: ${nft.price.toFixed(2)}
+                      </div>
+                    )}
 
                     {nft.token_id && (
                       <div className="flex items-center space-x-2 text-xs text-gray-400">
@@ -234,6 +256,17 @@ const NFTBalance = () => {
                         </button>
                       </div>
                     )}
+
+                    <div className="pt-2">
+                      <Button
+                        onClick={() => navigate(`/nft/${nft.id}`)}
+                        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                        size="sm"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        View Details
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               </motion.div>

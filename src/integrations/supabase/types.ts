@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      bug_bounties: {
+        Row: {
+          claimed_by: string | null
+          created_at: string
+          description: string
+          id: string
+          project_id: string
+          reward_amount: number
+          severity: string
+          status: string | null
+          submitted_by: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          claimed_by?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          project_id: string
+          reward_amount: number
+          severity: string
+          status?: string | null
+          submitted_by?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          claimed_by?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          project_id?: string
+          reward_amount?: number
+          severity?: string
+          status?: string | null
+          submitted_by?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bug_bounties_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leaderboard_stats: {
         Row: {
           created_at: string
@@ -58,6 +108,7 @@ export type Database = {
           contract_address: string | null
           created_at: string
           created_by_username: string | null
+          current_owner_id: string | null
           description: string | null
           for_sale: boolean | null
           id: string
@@ -66,6 +117,7 @@ export type Database = {
           minted_at: string | null
           name: string
           network: string
+          original_creator_id: string | null
           price: number | null
           status: string
           token_id: string | null
@@ -76,6 +128,7 @@ export type Database = {
           contract_address?: string | null
           created_at?: string
           created_by_username?: string | null
+          current_owner_id?: string | null
           description?: string | null
           for_sale?: boolean | null
           id?: string
@@ -84,6 +137,7 @@ export type Database = {
           minted_at?: string | null
           name: string
           network?: string
+          original_creator_id?: string | null
           price?: number | null
           status?: string
           token_id?: string | null
@@ -94,6 +148,7 @@ export type Database = {
           contract_address?: string | null
           created_at?: string
           created_by_username?: string | null
+          current_owner_id?: string | null
           description?: string | null
           for_sale?: boolean | null
           id?: string
@@ -102,10 +157,86 @@ export type Database = {
           minted_at?: string | null
           name?: string
           network?: string
+          original_creator_id?: string | null
           price?: number | null
           status?: string
           token_id?: string | null
           tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nft_sales: {
+        Row: {
+          buyer_id: string | null
+          created_at: string
+          id: string
+          nft_id: string
+          price: number
+          seller_id: string
+          sold_at: string | null
+          status: string | null
+        }
+        Insert: {
+          buyer_id?: string | null
+          created_at?: string
+          id?: string
+          nft_id: string
+          price: number
+          seller_id: string
+          sold_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          buyer_id?: string | null
+          created_at?: string
+          id?: string
+          nft_id?: string
+          price?: number
+          seller_id?: string
+          sold_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_sales_nft_id_fkey"
+            columns: ["nft_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_nfts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nft_sales_nft_id_fkey"
+            columns: ["nft_id"]
+            isOneToOne: false
+            referencedRelation: "nft_mints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      okdub_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          staked_amount: number | null
+          token_amount: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          staked_amount?: number | null
+          token_amount?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          staked_amount?: number | null
+          token_amount?: number | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -140,6 +271,72 @@ export type Database = {
           updated_at?: string
           username?: string | null
           wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          budget: number | null
+          client_user_id: string
+          contract_address: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          network: string | null
+          project_type: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          budget?: number | null
+          client_user_id: string
+          contract_address?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          network?: string | null
+          project_type: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          budget?: number | null
+          client_user_id?: string
+          contract_address?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          network?: string | null
+          project_type?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_tiers: {
+        Row: {
+          created_at: string
+          features: Json
+          id: string
+          name: string
+          required_tokens: number
+        }
+        Insert: {
+          created_at?: string
+          features: Json
+          id?: string
+          name: string
+          required_tokens: number
+        }
+        Update: {
+          created_at?: string
+          features?: Json
+          id?: string
+          name?: string
+          required_tokens?: number
         }
         Relationships: []
       }
