@@ -13,16 +13,18 @@ interface TokenBalance {
   staked_amount: number;
 }
 
+interface SubscriptionTierFeatures {
+  max_tests_per_day: number;
+  sandbox_access: boolean;
+  priority_support: boolean;
+  private_rpc?: boolean;
+}
+
 interface SubscriptionTier {
   id: string;
   name: string;
   required_tokens: number;
-  features: {
-    max_tests_per_day: number;
-    sandbox_access: boolean;
-    priority_support: boolean;
-    private_rpc?: boolean;
-  };
+  features: SubscriptionTierFeatures;
 }
 
 const TokenGatedAccess = () => {
@@ -64,14 +66,21 @@ const TokenGatedAccess = () => {
         .order('required_tokens', { ascending: true });
 
       if (error) throw error;
-      setSubscriptionTiers(data || []);
+      
+      // Transform the data to match our SubscriptionTier interface
+      const transformedTiers = data?.map(tier => ({
+        ...tier,
+        features: tier.features as SubscriptionTierFeatures
+      })) || [];
+      
+      setSubscriptionTiers(transformedTiers);
       
       // Determine current tier
-      if (tokenBalance && data) {
+      if (tokenBalance && transformedTiers.length > 0) {
         const availableTokens = tokenBalance.token_amount + tokenBalance.staked_amount;
-        const eligibleTiers = data.filter(tier => availableTokens >= tier.required_tokens);
+        const eligibleTiers = transformedTiers.filter(tier => availableTokens >= tier.required_tokens);
         const highestTier = eligibleTiers[eligibleTiers.length - 1];
-        setCurrentTier(highestTier || data[0]);
+        setCurrentTier(highestTier || transformedTiers[0]);
       }
     } catch (error) {
       console.error('Error fetching subscription tiers:', error);
@@ -79,6 +88,16 @@ const TokenGatedAccess = () => {
       setLoading(false);
     }
   };
+
+  // Update current tier when token balance changes
+  useEffect(() => {
+    if (tokenBalance && subscriptionTiers.length > 0) {
+      const availableTokens = tokenBalance.token_amount + tokenBalance.staked_amount;
+      const eligibleTiers = subscriptionTiers.filter(tier => availableTokens >= tier.required_tokens);
+      const highestTier = eligibleTiers[eligibleTiers.length - 1];
+      setCurrentTier(highestTier || subscriptionTiers[0]);
+    }
+  }, [tokenBalance, subscriptionTiers]);
 
   const handleStakeTokens = async (amount: number) => {
     if (!user || !tokenBalance) return;

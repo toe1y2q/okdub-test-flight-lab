@@ -293,7 +293,7 @@ const Dashboard = () => {
               transition={{ delay: 0.5 }}
             >
               <h2 className="text-2xl font-bold text-white mb-6">Blockchain Testing</h2>
-              <TestingEngine onStatsUpdate={fetchUserStats} />
+              <TestingEngine />
             </motion.div>
 
             <motion.div
@@ -302,7 +302,7 @@ const Dashboard = () => {
               transition={{ delay: 0.6 }}
             >
               <h2 className="text-2xl font-bold text-white mb-6">Create NFT</h2>
-              <NFTMinter onNftMinted={fetchUserStats} />
+              <NFTMinter />
             </motion.div>
           </div>
 
