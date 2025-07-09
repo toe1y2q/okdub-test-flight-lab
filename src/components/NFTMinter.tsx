@@ -26,6 +26,61 @@ const NFTMinter = () => {
     }
   };
 
+  const awardPointsForNFT = async (userId: string) => {
+    try {
+      // Award 100 points for successful NFT mint
+      const pointsToAward = 100;
+
+      // Update leaderboard stats
+      const { data: currentStats, error: fetchError } = await supabase
+        .from('leaderboard_stats')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching current stats:', fetchError);
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from('leaderboard_stats')
+        .update({
+          total_nfts: currentStats.total_nfts + 1,
+          points: currentStats.points + pointsToAward,
+          weekly_points: currentStats.weekly_points + pointsToAward,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+
+      if (updateError) {
+        console.error('Error updating stats:', updateError);
+        return;
+      }
+
+      // Record the points transaction
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: userId,
+          transaction_type: 'earned_points',
+          amount: 0, // No cash amount for earning points
+          points_amount: pointsToAward,
+          status: 'completed',
+          description: `Earned ${pointsToAward} points for minting NFT`,
+          completed_at: new Date().toISOString()
+        });
+
+      if (transactionError) {
+        console.error('Error recording transaction:', transactionError);
+      } else {
+        toast.success(`+${pointsToAward} points earned for NFT mint!`);
+      }
+    } catch (error) {
+      console.error('Error awarding points:', error);
+    }
+  };
+
   const mintNFT = async () => {
     if (!user) {
       toast.error('Please sign in to mint NFTs');
@@ -91,6 +146,9 @@ const NFTMinter = () => {
             minted_at: new Date().toISOString()
           })
           .eq('id', data.id);
+
+        // Award points for successful NFT mint
+        await awardPointsForNFT(user.id);
 
         toast.success(`NFT minted successfully! Token ID: ${mockTokenId}`);
         
@@ -170,7 +228,7 @@ const NFTMinter = () => {
             ) : (
               <div className="flex items-center">
                 <Sparkles className="w-4 h-4 mr-2" />
-                Mint NFT
+                Mint NFT (+100 points)
               </div>
             )}
           </Button>
