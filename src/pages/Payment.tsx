@@ -9,7 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Starfield } from '@/components/Starfield';
+import { SolanaPayment } from '@/components/SolanaPayment';
 import { LogOut, Zap, CreditCard, Lock, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -93,7 +95,7 @@ const Payment = () => {
     return cartItems.reduce((total, item) => total + (item.nft.price * item.quantity), 0);
   };
 
-  const processPayment = async () => {
+  const processTraditionalPayment = async () => {
     if (!paymentData.card_number || !paymentData.expiry_date || !paymentData.cvv || !paymentData.cardholder_name) {
       toast.error('Please fill in all payment details');
       return;
@@ -108,7 +110,6 @@ const Payment = () => {
     try {
       const totalAmount = getTotalAmount();
 
-      // Create payment record
       const { data: payment, error: paymentError } = await supabase
         .from('payments')
         .insert({
@@ -125,7 +126,6 @@ const Payment = () => {
 
       if (paymentError) throw paymentError;
 
-      // Create payment items
       const paymentItems = cartItems.map(item => ({
         payment_id: payment.id,
         nft_id: item.nft.id,
@@ -139,14 +139,7 @@ const Payment = () => {
 
       if (itemsError) throw itemsError;
 
-      // Clear cart
-      const { error: clearCartError } = await supabase
-        .from('cart_items')
-        .delete()
-        .eq('user_id', user?.id);
-
-      if (clearCartError) throw clearCartError;
-
+      await clearCart();
       toast.success('Payment processed successfully!');
       navigate('/dashboard');
     } catch (error) {
@@ -155,6 +148,22 @@ const Payment = () => {
     } finally {
       setProcessingPayment(false);
     }
+  };
+
+  const clearCart = async () => {
+    const { error } = await supabase
+      .from('cart_items')
+      .delete()
+      .eq('user_id', user?.id);
+
+    if (error) {
+      console.error('Error clearing cart:', error);
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    await clearCart();
+    navigate('/dashboard');
   };
 
   const handleSignOut = async () => {
@@ -299,126 +308,104 @@ const Payment = () => {
               </Card>
             </motion.div>
 
-            {/* Payment Form */}
+            {/* Payment Methods */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <Card className="p-6 backdrop-blur-xl bg-white/5 border border-white/10">
-                <h3 className="text-xl font-bold text-white mb-6 flex items-center">
-                  <Lock className="w-5 h-5 mr-2 text-green-400" />
-                  Payment Details
-                </h3>
+              <Tabs defaultValue="traditional" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="traditional">Credit Card</TabsTrigger>
+                  <TabsTrigger value="solana">Solana</TabsTrigger>
+                </TabsList>
                 
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="payment_method" className="text-white">Payment Method</Label>
-                    <Select value={paymentData.payment_method} onValueChange={(value) => handleInputChange('payment_method', value)}>
-                      <SelectTrigger className="bg-slate-800/50 border-gray-600 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="credit_card">Credit Card</SelectItem>
-                        <SelectItem value="debit_card">Debit Card</SelectItem>
-                        <SelectItem value="paypal">PayPal</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <TabsContent value="traditional">
+                  <Card className="p-6 backdrop-blur-xl bg-white/5 border border-white/10">
+                    <h3 className="text-xl font-bold text-white mb-6 flex items-center">
+                      <Lock className="w-5 h-5 mr-2 text-green-400" />
+                      Payment Details
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="payment_method" className="text-white">Payment Method</Label>
+                        <Select value={paymentData.payment_method} onValueChange={(value) => handleInputChange('payment_method', value)}>
+                          <SelectTrigger className="bg-slate-800/50 border-gray-600 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="credit_card">Credit Card</SelectItem>
+                            <SelectItem value="debit_card">Debit Card</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                  <div>
-                    <Label htmlFor="cardholder_name" className="text-white">Cardholder Name</Label>
-                    <Input
-                      id="cardholder_name"
-                      value={paymentData.cardholder_name}
-                      onChange={(e) => handleInputChange('cardholder_name', e.target.value)}
-                      placeholder="John Doe"
-                      className="bg-slate-800/50 border-gray-600 text-white"
-                    />
-                  </div>
+                      <div>
+                        <Label htmlFor="cardholder_name" className="text-white">Cardholder Name</Label>
+                        <Input
+                          id="cardholder_name"
+                          value={paymentData.cardholder_name}
+                          onChange={(e) => handleInputChange('cardholder_name', e.target.value)}
+                          placeholder="John Doe"
+                          className="bg-slate-800/50 border-gray-600 text-white"
+                        />
+                      </div>
 
-                  <div>
-                    <Label htmlFor="card_number" className="text-white">Card Number</Label>
-                    <Input
-                      id="card_number"
-                      value={paymentData.card_number}
-                      onChange={(e) => handleInputChange('card_number', e.target.value)}
-                      placeholder="1234 5678 9012 3456"
-                      className="bg-slate-800/50 border-gray-600 text-white"
-                    />
-                  </div>
+                      <div>
+                        <Label htmlFor="card_number" className="text-white">Card Number</Label>
+                        <Input
+                          id="card_number"
+                          value={paymentData.card_number}
+                          onChange={(e) => handleInputChange('card_number', e.target.value)}
+                          placeholder="1234 5678 9012 3456"
+                          className="bg-slate-800/50 border-gray-600 text-white"
+                        />
+                      </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="expiry_date" className="text-white">Expiry Date</Label>
-                      <Input
-                        id="expiry_date"
-                        value={paymentData.expiry_date}
-                        onChange={(e) => handleInputChange('expiry_date', e.target.value)}
-                        placeholder="MM/YY"
-                        className="bg-slate-800/50 border-gray-600 text-white"
-                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="expiry_date" className="text-white">Expiry Date</Label>
+                          <Input
+                            id="expiry_date"
+                            value={paymentData.expiry_date}
+                            onChange={(e) => handleInputChange('expiry_date', e.target.value)}
+                            placeholder="MM/YY"
+                            className="bg-slate-800/50 border-gray-600 text-white"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="cvv" className="text-white">CVV</Label>
+                          <Input
+                            id="cvv"
+                            value={paymentData.cvv}
+                            onChange={(e) => handleInputChange('cvv', e.target.value)}
+                            placeholder="123"
+                            className="bg-slate-800/50 border-gray-600 text-white"
+                          />
+                        </div>
+                      </div>
+
+                      <Button
+                        onClick={processTraditionalPayment}
+                        disabled={processingPayment || cartItems.length === 0}
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-lg py-3"
+                      >
+                        <CreditCard className="w-5 h-5 mr-2" />
+                        {processingPayment ? 'Processing...' : `Pay $${getTotalAmount().toFixed(2)}`}
+                      </Button>
                     </div>
-                    <div>
-                      <Label htmlFor="cvv" className="text-white">CVV</Label>
-                      <Input
-                        id="cvv"
-                        value={paymentData.cvv}
-                        onChange={(e) => handleInputChange('cvv', e.target.value)}
-                        placeholder="123"
-                        className="bg-slate-800/50 border-gray-600 text-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="billing_address" className="text-white">Billing Address</Label>
-                    <Input
-                      id="billing_address"
-                      value={paymentData.billing_address}
-                      onChange={(e) => handleInputChange('billing_address', e.target.value)}
-                      placeholder="123 Main St"
-                      className="bg-slate-800/50 border-gray-600 text-white"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="city" className="text-white">City</Label>
-                      <Input
-                        id="city"
-                        value={paymentData.city}
-                        onChange={(e) => handleInputChange('city', e.target.value)}
-                        placeholder="New York"
-                        className="bg-slate-800/50 border-gray-600 text-white"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="postal_code" className="text-white">Postal Code</Label>
-                      <Input
-                        id="postal_code"
-                        value={paymentData.postal_code}
-                        onChange={(e) => handleInputChange('postal_code', e.target.value)}
-                        placeholder="10001"
-                        className="bg-slate-800/50 border-gray-600 text-white"
-                      />
-                    </div>
-                  </div>
-
-                  <Button
-                    onClick={processPayment}
-                    disabled={processingPayment || cartItems.length === 0}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-lg py-3"
-                  >
-                    <CreditCard className="w-5 h-5 mr-2" />
-                    {processingPayment ? 'Processing...' : `Pay $${getTotalAmount().toFixed(2)}`}
-                  </Button>
-                  
-                  <p className="text-xs text-gray-400 text-center">
-                    Your payment information is secure and encrypted
-                  </p>
-                </div>
-              </Card>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="solana">
+                  <SolanaPayment
+                    totalAmount={getTotalAmount() / 100} // Convert to SOL (approximate)
+                    cartItems={cartItems}
+                    onPaymentSuccess={handlePaymentSuccess}
+                  />
+                </TabsContent>
+              </Tabs>
             </motion.div>
           </div>
         )}

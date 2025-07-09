@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      bounty_completions: {
+        Row: {
+          bounty_id: string
+          completed_at: string
+          completed_by: string
+          completion_proof: string
+          completion_url: string | null
+          created_at: string
+          id: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+        }
+        Insert: {
+          bounty_id: string
+          completed_at?: string
+          completed_by: string
+          completion_proof: string
+          completion_url?: string | null
+          created_at?: string
+          id?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Update: {
+          bounty_id?: string
+          completed_at?: string
+          completed_by?: string
+          completion_proof?: string
+          completion_url?: string | null
+          created_at?: string
+          id?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bounty_completions_bounty_id_fkey"
+            columns: ["bounty_id"]
+            isOneToOne: false
+            referencedRelation: "bug_bounties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bug_bounties: {
         Row: {
           claimed_by: string | null
@@ -351,6 +401,8 @@ export type Database = {
           currency: string
           id: string
           payment_method: string
+          solana_transaction_id: string | null
+          solana_wallet_address: string | null
           status: string
           total_amount: number
           transaction_id: string | null
@@ -362,6 +414,8 @@ export type Database = {
           currency?: string
           id?: string
           payment_method: string
+          solana_transaction_id?: string | null
+          solana_wallet_address?: string | null
           status?: string
           total_amount: number
           transaction_id?: string | null
@@ -373,6 +427,8 @@ export type Database = {
           currency?: string
           id?: string
           payment_method?: string
+          solana_transaction_id?: string | null
+          solana_wallet_address?: string | null
           status?: string
           total_amount?: number
           transaction_id?: string | null
@@ -582,6 +638,39 @@ export type Database = {
           points_balance?: number
           total_earned?: number
           total_withdrawn?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          started_at: string
+          subscription_tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          started_at?: string
+          subscription_tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          started_at?: string
+          subscription_tier?: string
           updated_at?: string
           user_id?: string
         }

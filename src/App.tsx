@@ -19,6 +19,7 @@ import NFTDetail from "./pages/NFTDetail";
 import NFTCreator from "./pages/NFTCreator";
 import Cart from "./pages/Cart";
 import Payment from "./pages/Payment";
+import BountyCompletion from "./pages/BountyCompletion";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
           <Route path="/projects" element={<Projects />} />
           <Route path="/bounties" element={<BugBounties />} />
           <Route path="/bug-bounties" element={<BugBountiesView />} />
+          <Route path="/bounty/:id/complete" element={<BountyCompletion />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="*" element={<NotFound />} />

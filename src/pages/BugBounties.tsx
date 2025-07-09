@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
@@ -11,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Starfield } from '@/components/Starfield';
-import { LogOut, Zap, Plus, Bug, DollarSign, Clock, User, AlertTriangle } from 'lucide-react';
+import { LogOut, Zap, Plus, Bug, DollarSign, Clock, User, AlertTriangle, Crown } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface BugBounty {
@@ -34,6 +35,7 @@ interface Project {
 
 const BugBounties = () => {
   const { user, loading, signOut, isAuthenticated } = useAuth();
+  const { isPro, loading: subscriptionLoading } = useSubscription();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [bounties, setBounties] = useState<BugBounty[]>([]);
@@ -95,6 +97,11 @@ const BugBounties = () => {
   const handleCreateBounty = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    if (!isPro) {
+      toast.error('Only Pro users can create bug bounties. Please upgrade your subscription.');
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -167,7 +174,7 @@ const BugBounties = () => {
     }
   };
 
-  if (loading) {
+  if (loading || subscriptionLoading) {
     return (
       <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-poppins flex items-center justify-center">
         <Starfield />
@@ -211,6 +218,18 @@ const BugBounties = () => {
         </motion.div>
         
         <div className="flex items-center space-x-4">
+          {!isPro && (
+            <Badge className="bg-yellow-500/20 text-yellow-400">
+              <Crown className="w-3 h-3 mr-1" />
+              Free Plan
+            </Badge>
+          )}
+          {isPro && (
+            <Badge className="bg-purple-500/20 text-purple-400">
+              <Crown className="w-3 h-3 mr-1" />
+              Pro Plan
+            </Badge>
+          )}
           <Button
             onClick={() => navigate('/dashboard')}
             variant="outline"
@@ -251,16 +270,23 @@ const BugBounties = () => {
             <p className="text-xl text-gray-400">Find and fix bugs, earn rewards</p>
           </div>
           <Button
-            onClick={() => setShowCreateForm(!showCreateForm)}
-            className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700"
+            onClick={() => {
+              if (!isPro) {
+                toast.error('Only Pro users can create bug bounties. Please upgrade your subscription.');
+                return;
+              }
+              setShowCreateForm(!showCreateForm);
+            }}
+            className={`${isPro ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700' : 'bg-gray-600 cursor-not-allowed'}`}
+            disabled={!isPro}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Create Bounty
+            Create Bounty {!isPro && '(Pro Only)'}
           </Button>
         </motion.div>
 
         {/* Create Bounty Form */}
-        {showCreateForm && (
+        {showCreateForm && isPro && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -370,13 +396,17 @@ const BugBounties = () => {
           <Card className="p-12 backdrop-blur-xl bg-white/5 border border-white/10 text-center">
             <Bug className="w-16 h-16 mx-auto mb-4 text-gray-400 opacity-50" />
             <h3 className="text-xl font-semibold text-gray-300 mb-2">No Bug Bounties Found</h3>
-            <p className="text-gray-400 mb-6">Start by creating your first bug bounty!</p>
-            <Button
-              onClick={() => setShowCreateForm(true)}
-              className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700"
-            >
-              Create Bounty
-            </Button>
+            <p className="text-gray-400 mb-6">
+              {isPro ? "Start by creating your first bug bounty!" : "No bounties available at the moment."}
+            </p>
+            {isPro && (
+              <Button
+                onClick={() => setShowCreateForm(true)}
+                className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700"
+              >
+                Create Bounty
+              </Button>
+            )}
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -420,7 +450,7 @@ const BugBounties = () => {
                     </div>
                   </div>
 
-                  {bounty.status === 'open' && (
+                  {bounty.status === 'open' && bounty.submitted_by !== user?.id && (
                     <Button
                       onClick={() => handleClaimBounty(bounty.id)}
                       className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
@@ -431,9 +461,25 @@ const BugBounties = () => {
                   )}
 
                   {bounty.status === 'claimed' && bounty.claimed_by === user?.id && (
-                    <div className="text-center text-blue-400 text-sm">
+                    <div className="space-y-2">
+                      <div className="text-center text-blue-400 text-sm">
+                        <User className="w-4 h-4 inline mr-1" />
+                        Claimed by you
+                      </div>
+                      <Button
+                        onClick={() => navigate(`/bounty/${bounty.id}/complete`)}
+                        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                        size="sm"
+                      >
+                        Complete Bounty
+                      </Button>
+                    </div>
+                  )}
+
+                  {bounty.submitted_by === user?.id && (
+                    <div className="text-center text-purple-400 text-sm">
                       <User className="w-4 h-4 inline mr-1" />
-                      Claimed by you
+                      Created by you
                     </div>
                   )}
                 </Card>
