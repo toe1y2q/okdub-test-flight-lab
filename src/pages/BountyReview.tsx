@@ -114,12 +114,25 @@ const BountyReview = () => {
 
         if (bountyError) throw bountyError;
 
-        // Add reward to user's cash balance
+        // Get current balance first
+        const { data: currentBalance, error: balanceSelectError } = await supabase
+          .from('user_balances')
+          .select('cash_balance, total_earned')
+          .eq('user_id', completion.completed_by)
+          .single();
+
+        if (balanceSelectError) throw balanceSelectError;
+
+        // Calculate new balances
+        const newCashBalance = (currentBalance.cash_balance || 0) + bounty.reward_amount;
+        const newTotalEarned = (currentBalance.total_earned || 0) + bounty.reward_amount;
+
+        // Update balance with calculated values
         const { error: balanceError } = await supabase
           .from('user_balances')
           .update({
-            cash_balance: supabase.sql`cash_balance + ${bounty.reward_amount}`,
-            total_earned: supabase.sql`total_earned + ${bounty.reward_amount}`,
+            cash_balance: newCashBalance,
+            total_earned: newTotalEarned,
             updated_at: new Date().toISOString()
           })
           .eq('user_id', completion.completed_by);
