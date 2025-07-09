@@ -18,6 +18,13 @@ interface UserBalance {
   total_withdrawn: number;
 }
 
+interface LeaderboardStats {
+  points: number;
+  weekly_points: number;
+  total_nfts: number;
+  total_tests: number;
+}
+
 interface Transaction {
   id: string;
   transaction_type: string;
@@ -32,6 +39,7 @@ const Balance = () => {
   const { user, loading, signOut, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [balance, setBalance] = useState<UserBalance | null>(null);
+  const [stats, setStats] = useState<LeaderboardStats | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingBalance, setLoadingBalance] = useState(true);
   const [pointsToConvert, setPointsToConvert] = useState<string>('');
@@ -46,6 +54,7 @@ const Balance = () => {
   useEffect(() => {
     if (isAuthenticated && user) {
       fetchBalance();
+      fetchStats();
       fetchTransactions();
     }
   }, [isAuthenticated, user]);
@@ -64,6 +73,21 @@ const Balance = () => {
       console.error('Error fetching balance:', error);
     } finally {
       setLoadingBalance(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('leaderboard_stats')
+        .select('*')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      setStats(data || { points: 0, weekly_points: 0, total_nfts: 0, total_tests: 0 });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
     }
   };
 
@@ -102,6 +126,7 @@ const Balance = () => {
       toast.success(`Successfully converted ${points} points to $${(points / 1000).toFixed(2)}!`);
       setPointsToConvert('');
       fetchBalance();
+      fetchStats();
       fetchTransactions();
     } catch (error: any) {
       console.error('Error converting points:', error);
@@ -173,6 +198,14 @@ const Balance = () => {
             Dashboard
           </Button>
           <Button
+            onClick={() => navigate('/marketplace')}
+            variant="outline"
+            size="sm"
+            className="border-purple-400/30 text-purple-400 hover:bg-purple-400/10"
+          >
+            Marketplace
+          </Button>
+          <Button
             onClick={handleSignOut}
             variant="outline"
             size="sm"
@@ -207,7 +240,7 @@ const Balance = () => {
               <Zap className="w-8 h-8 text-cyan-400" />
               <span className="text-sm text-cyan-400 font-semibold">Points Balance</span>
             </div>
-            <p className="text-3xl font-bold text-white">{balance?.points_balance || 0}</p>
+            <p className="text-3xl font-bold text-white">{stats?.points || 0}</p>
             <p className="text-sm text-gray-400 mt-1">Available Points</p>
           </Card>
 

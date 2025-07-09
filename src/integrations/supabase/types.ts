@@ -57,13 +57,16 @@ export type Database = {
         Row: {
           contract_address: string | null
           created_at: string
+          created_by_username: string | null
           description: string | null
+          for_sale: boolean | null
           id: string
           image_url: string | null
           metadata_url: string | null
           minted_at: string | null
           name: string
           network: string
+          price: number | null
           status: string
           token_id: string | null
           tx_hash: string | null
@@ -72,13 +75,16 @@ export type Database = {
         Insert: {
           contract_address?: string | null
           created_at?: string
+          created_by_username?: string | null
           description?: string | null
+          for_sale?: boolean | null
           id?: string
           image_url?: string | null
           metadata_url?: string | null
           minted_at?: string | null
           name: string
           network?: string
+          price?: number | null
           status?: string
           token_id?: string | null
           tx_hash?: string | null
@@ -87,13 +93,16 @@ export type Database = {
         Update: {
           contract_address?: string | null
           created_at?: string
+          created_by_username?: string | null
           description?: string | null
+          for_sale?: boolean | null
           id?: string
           image_url?: string | null
           metadata_url?: string | null
           minted_at?: string | null
           name?: string
           network?: string
+          price?: number | null
           status?: string
           token_id?: string | null
           tx_hash?: string | null
@@ -109,6 +118,7 @@ export type Database = {
           id: string
           last_name: string | null
           updated_at: string
+          username: string | null
           wallet_address: string | null
         }
         Insert: {
@@ -118,6 +128,7 @@ export type Database = {
           id: string
           last_name?: string | null
           updated_at?: string
+          username?: string | null
           wallet_address?: string | null
         }
         Update: {
@@ -127,6 +138,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           updated_at?: string
+          username?: string | null
           wallet_address?: string | null
         }
         Relationships: []
@@ -271,7 +283,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      marketplace_nfts: {
+        Row: {
+          contract_address: string | null
+          created_at: string | null
+          created_by_username: string | null
+          description: string | null
+          first_name: string | null
+          for_sale: boolean | null
+          id: string | null
+          image_url: string | null
+          last_name: string | null
+          metadata_url: string | null
+          minted_at: string | null
+          name: string | null
+          network: string | null
+          price: number | null
+          status: string | null
+          token_id: string | null
+          tx_hash: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       convert_points_to_cash: {

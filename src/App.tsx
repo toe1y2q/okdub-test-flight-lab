@@ -11,6 +11,7 @@ import NFTBalance from "./pages/NFTBalance";
 import Rewards from "./pages/Rewards";
 import Settings from "./pages/Settings";
 import Balance from "./pages/Balance";
+import Marketplace from "./pages/Marketplace";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/balance" element={<Balance />} />
+          <Route path="/marketplace" element={<Marketplace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
