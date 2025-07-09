@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useSolanaWallet } from '@/hooks/useSolanaWallet';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Wallet, Loader2 } from 'lucide-react';
@@ -15,12 +16,18 @@ interface SolanaPaymentProps {
 
 export const SolanaPayment = ({ totalAmount, cartItems, onPaymentSuccess }: SolanaPaymentProps) => {
   const { wallet, connected, connectWallet, signInWithWallet } = useSolanaWallet();
+  const { user } = useAuth();
   const [processing, setProcessing] = useState(false);
 
   const handleSolanaPayment = async () => {
     if (!connected) {
       const result = await signInWithWallet();
       if (!result) return;
+    }
+
+    if (!user) {
+      toast.error('User not authenticated');
+      return;
     }
 
     setProcessing(true);
@@ -32,6 +39,7 @@ export const SolanaPayment = ({ totalAmount, cartItems, onPaymentSuccess }: Sola
       const { data: payment, error: paymentError } = await supabase
         .from('payments')
         .insert({
+          user_id: user.id,
           total_amount: totalAmount,
           currency: 'SOL',
           payment_method: 'solana',
@@ -92,7 +100,7 @@ export const SolanaPayment = ({ totalAmount, cartItems, onPaymentSuccess }: Sola
       ) : (
         <Button
           onClick={handleSolanaPayment}
-          disabled={processing}
+          disabled={processing || !user}
           className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
         >
           {processing ? (
