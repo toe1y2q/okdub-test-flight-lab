@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Starfield } from '@/components/Starfield';
-import { Leaderboard } from '@/components/Leaderboard';
+import Leaderboard from '@/components/Leaderboard';
 import NFTMinter from '@/components/NFTMinter';
 import TestingEngine from '@/components/TestingEngine';
 import { LogOut, Zap, TrendingUp, Trophy, Palette, Code } from 'lucide-react';
