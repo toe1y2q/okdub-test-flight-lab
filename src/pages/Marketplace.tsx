@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Starfield } from '@/components/Starfield';
-import { LogOut, Zap, Search, Eye, User, Calendar, DollarSign } from 'lucide-react';
+import { LogOut, Zap, Search, Eye, User, Calendar, DollarSign, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MarketplaceNFT {
@@ -65,6 +65,7 @@ const Marketplace = () => {
       const { data, error } = await supabase
         .from('marketplace_nfts')
         .select('*')
+        .eq('for_sale', true)
         .order('minted_at', { ascending: false });
 
       if (error) throw error;
@@ -75,6 +76,33 @@ const Marketplace = () => {
       toast.error('Failed to load NFTs');
     } finally {
       setLoadingNfts(false);
+    }
+  };
+
+  const handleAddToCart = async (nftId: string) => {
+    if (!user) {
+      toast.error('Please log in to add items to cart');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('cart_items')
+        .upsert({
+          user_id: user.id,
+          nft_id: nftId,
+          quantity: 1
+        }, {
+          onConflict: 'user_id,nft_id'
+        });
+
+      if (error) throw error;
+
+      toast.success('Added to cart!');
+      navigate('/cart');
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Failed to add to cart');
     }
   };
 
@@ -147,12 +175,21 @@ const Marketplace = () => {
             Dashboard
           </Button>
           <Button
-            onClick={() => navigate('/balance')}
+            onClick={() => navigate('/cart')}
             variant="outline"
             size="sm"
-            className="border-green-400/30 text-green-400 hover:bg-green-400/10"
+            className="border-purple-400/30 text-purple-400 hover:bg-purple-400/10"
           >
-            Balance
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            Cart
+          </Button>
+          <Button
+            onClick={() => navigate('/bounties')}
+            variant="outline"
+            size="sm"
+            className="border-yellow-400/30 text-yellow-400 hover:bg-yellow-400/10"
+          >
+            Bug Bounties
           </Button>
           <Button
             onClick={handleSignOut}
@@ -174,7 +211,7 @@ const Marketplace = () => {
           className="mb-8"
         >
           <h1 className="text-4xl font-bold mb-3 text-purple-400">NFT Marketplace</h1>
-          <p className="text-xl text-gray-400">Discover and explore NFTs created by the community</p>
+          <p className="text-xl text-gray-400">Discover and purchase NFTs created by the community</p>
         </motion.div>
 
         {/* Search Bar */}
@@ -209,7 +246,7 @@ const Marketplace = () => {
             <Eye className="w-16 h-16 mx-auto mb-4 text-gray-400 opacity-50" />
             <h3 className="text-2xl font-bold text-gray-400 mb-2">No NFTs Found</h3>
             <p className="text-gray-500">
-              {searchTerm ? 'Try adjusting your search terms' : 'Be the first to mint an NFT!'}
+              {searchTerm ? 'Try adjusting your search terms' : 'No NFTs available for sale!'}
             </p>
           </motion.div>
         ) : (
@@ -275,22 +312,21 @@ const Marketplace = () => {
                       </span>
                     </div>
 
-                    {/* Price (if for sale) */}
-                    {nft.for_sale && nft.price > 0 && (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <DollarSign className="w-4 h-4 text-green-400" />
-                          <span className="text-green-400 font-semibold">${nft.price.toFixed(2)}</span>
-                        </div>
-                        <Button
-                          size="sm"
-                          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                          onClick={() => toast.info('Purchasing feature coming soon!')}
-                        >
-                          Buy Now
-                        </Button>
+                    {/* Price and Buy Button */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <DollarSign className="w-4 h-4 text-green-400" />
+                        <span className="text-green-400 font-semibold">${nft.price.toFixed(2)}</span>
                       </div>
-                    )}
+                      <Button
+                        size="sm"
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                        onClick={() => handleAddToCart(nft.id)}
+                      >
+                        <ShoppingCart className="w-4 h-4 mr-1" />
+                        Buy
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               </motion.div>
@@ -306,7 +342,7 @@ const Marketplace = () => {
           className="mt-12 text-center"
         >
           <p className="text-gray-400">
-            Showing {filteredNfts.length} of {nfts.length} NFTs
+            Showing {filteredNfts.length} of {nfts.length} NFTs for sale
           </p>
         </motion.div>
       </div>

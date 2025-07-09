@@ -14,7 +14,11 @@ import Balance from "./pages/Balance";
 import Marketplace from "./pages/Marketplace";
 import Projects from "./pages/Projects";
 import BugBounties from "./pages/BugBounties";
+import BugBountiesView from "./pages/BugBountiesView";
 import NFTDetail from "./pages/NFTDetail";
+import NFTCreator from "./pages/NFTCreator";
+import Cart from "./pages/Cart";
+import Payment from "./pages/Payment";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,12 +35,16 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/nfts" element={<NFTBalance />} />
           <Route path="/nft/:id" element={<NFTDetail />} />
+          <Route path="/nft-creator" element={<NFTCreator />} />
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/balance" element={<Balance />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/bounties" element={<BugBounties />} />
+          <Route path="/bug-bounties" element={<BugBountiesView />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/payment" element={<Payment />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

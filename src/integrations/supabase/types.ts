@@ -64,6 +64,45 @@ export type Database = {
           },
         ]
       }
+      cart_items: {
+        Row: {
+          added_at: string
+          id: string
+          nft_id: string
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          id?: string
+          nft_id: string
+          quantity?: number
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          id?: string
+          nft_id?: string
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_nft_id_fkey"
+            columns: ["nft_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_nfts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_nft_id_fkey"
+            columns: ["nft_id"]
+            isOneToOne: false
+            referencedRelation: "nft_mints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leaderboard_stats: {
         Row: {
           created_at: string
@@ -105,14 +144,19 @@ export type Database = {
       }
       nft_mints: {
         Row: {
+          category: string | null
           contract_address: string | null
           created_at: string
           created_by_username: string | null
+          creator_royalty: number | null
+          current_edition: number | null
           current_owner_id: string | null
           description: string | null
+          edition_size: number | null
           for_sale: boolean | null
           id: string
           image_url: string | null
+          is_limited_edition: boolean | null
           metadata_url: string | null
           minted_at: string | null
           name: string
@@ -120,19 +164,25 @@ export type Database = {
           original_creator_id: string | null
           price: number | null
           status: string
+          tags: string[] | null
           token_id: string | null
           tx_hash: string | null
           user_id: string
         }
         Insert: {
+          category?: string | null
           contract_address?: string | null
           created_at?: string
           created_by_username?: string | null
+          creator_royalty?: number | null
+          current_edition?: number | null
           current_owner_id?: string | null
           description?: string | null
+          edition_size?: number | null
           for_sale?: boolean | null
           id?: string
           image_url?: string | null
+          is_limited_edition?: boolean | null
           metadata_url?: string | null
           minted_at?: string | null
           name: string
@@ -140,19 +190,25 @@ export type Database = {
           original_creator_id?: string | null
           price?: number | null
           status?: string
+          tags?: string[] | null
           token_id?: string | null
           tx_hash?: string | null
           user_id: string
         }
         Update: {
+          category?: string | null
           contract_address?: string | null
           created_at?: string
           created_by_username?: string | null
+          creator_royalty?: number | null
+          current_edition?: number | null
           current_owner_id?: string | null
           description?: string | null
+          edition_size?: number | null
           for_sale?: boolean | null
           id?: string
           image_url?: string | null
+          is_limited_edition?: boolean | null
           metadata_url?: string | null
           minted_at?: string | null
           name?: string
@@ -160,6 +216,7 @@ export type Database = {
           original_creator_id?: string | null
           price?: number | null
           status?: string
+          tags?: string[] | null
           token_id?: string | null
           tx_hash?: string | null
           user_id?: string
@@ -237,6 +294,88 @@ export type Database = {
           staked_amount?: number | null
           token_amount?: number | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payment_items: {
+        Row: {
+          id: string
+          nft_id: string
+          payment_id: string
+          price: number
+          quantity: number
+        }
+        Insert: {
+          id?: string
+          nft_id: string
+          payment_id: string
+          price: number
+          quantity?: number
+        }
+        Update: {
+          id?: string
+          nft_id?: string
+          payment_id?: string
+          price?: number
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_items_nft_id_fkey"
+            columns: ["nft_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_nfts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_items_nft_id_fkey"
+            columns: ["nft_id"]
+            isOneToOne: false
+            referencedRelation: "nft_mints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_items_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          currency: string
+          id: string
+          payment_method: string
+          status: string
+          total_amount: number
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_method: string
+          status?: string
+          total_amount: number
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_method?: string
+          status?: string
+          total_amount?: number
+          transaction_id?: string | null
           user_id?: string
         }
         Relationships: []
@@ -482,21 +621,29 @@ export type Database = {
     Views: {
       marketplace_nfts: {
         Row: {
+          category: string | null
           contract_address: string | null
           created_at: string | null
           created_by_username: string | null
+          creator_royalty: number | null
+          current_edition: number | null
+          current_owner_id: string | null
           description: string | null
+          edition_size: number | null
           first_name: string | null
           for_sale: boolean | null
           id: string | null
           image_url: string | null
+          is_limited_edition: boolean | null
           last_name: string | null
           metadata_url: string | null
           minted_at: string | null
           name: string | null
           network: string | null
+          original_creator_id: string | null
           price: number | null
           status: string | null
+          tags: string[] | null
           token_id: string | null
           tx_hash: string | null
           user_id: string | null
