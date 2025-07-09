@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -230,6 +229,14 @@ const BugBounties = () => {
               Pro Plan
             </Badge>
           )}
+          <Button
+            onClick={() => navigate('/pricing')}
+            variant="outline"
+            size="sm"
+            className="border-yellow-400/30 text-yellow-400 hover:bg-yellow-400/10"
+          >
+            Pricing
+          </Button>
           <Button
             onClick={() => navigate('/dashboard')}
             variant="outline"
@@ -477,9 +484,20 @@ const BugBounties = () => {
                   )}
 
                   {bounty.submitted_by === user?.id && (
-                    <div className="text-center text-purple-400 text-sm">
-                      <User className="w-4 h-4 inline mr-1" />
-                      Created by you
+                    <div className="space-y-2">
+                      <div className="text-center text-purple-400 text-sm">
+                        <User className="w-4 h-4 inline mr-1" />
+                        Created by you
+                      </div>
+                      {bounty.status === 'claimed' && (
+                        <Button
+                          onClick={() => navigate(`/bounty/${bounty.id}/review`)}
+                          className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700"
+                          size="sm"
+                        >
+                          Review Completion
+                        </Button>
+                      )}
                     </div>
                   )}
                 </Card>

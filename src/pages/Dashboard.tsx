@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -112,28 +111,12 @@ const Dashboard = () => {
         
         <div className="flex items-center space-x-4">
           <Button
-            onClick={() => navigate('/balance')}
+            onClick={() => navigate('/pricing')}
             variant="outline"
             size="sm"
-            className="border-green-400/30 text-green-400 hover:bg-green-400/10"
+            className="border-yellow-400/30 text-yellow-400 hover:bg-yellow-400/10"
           >
-            Balance
-          </Button>
-          <Button
-            onClick={() => navigate('/nfts')}
-            variant="outline"
-            size="sm"
-            className="border-purple-400/30 text-purple-400 hover:bg-purple-400/10"
-          >
-            My NFTs
-          </Button>
-          <Button
-            onClick={() => navigate('/marketplace')}
-            variant="outline"
-            size="sm"
-            className="border-pink-400/30 text-pink-400 hover:bg-pink-400/10"
-          >
-            Marketplace
+            Pricing
           </Button>
           <Button
             onClick={handleSignOut}
