@@ -42,6 +42,7 @@ const App = () => (
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/balance" element={<Balance />} />
+          <Route path="/withdrawal" element={<SolanaWithdrawal />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/bounties" element={<BugBounties />} />
