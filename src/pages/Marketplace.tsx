@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Starfield } from '@/components/Starfield';
-import { LogOut, Zap, Search, Eye, User, Calendar, DollarSign, ShoppingCart } from 'lucide-react';
+import { LogOut, Zap, Search, Eye, User, Calendar, DollarSign, ShoppingCart, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MarketplaceNFT {
@@ -24,6 +23,7 @@ interface MarketplaceNFT {
   username: string;
   first_name: string;
   last_name: string;
+  sales_count?: number;
 }
 
 const Marketplace = () => {
@@ -69,8 +69,25 @@ const Marketplace = () => {
         .order('minted_at', { ascending: false });
 
       if (error) throw error;
-      setNfts(data || []);
-      setFilteredNfts(data || []);
+
+      // Fetch sales count for each NFT
+      const nftsWithSalesCount = await Promise.all(
+        (data || []).map(async (nft) => {
+          const { count } = await supabase
+            .from('nft_sales')
+            .select('*', { count: 'exact', head: true })
+            .eq('nft_id', nft.id)
+            .eq('status', 'sold');
+          
+          return {
+            ...nft,
+            sales_count: count || 0
+          };
+        })
+      );
+
+      setNfts(nftsWithSalesCount);
+      setFilteredNfts(nftsWithSalesCount);
     } catch (error) {
       console.error('Error fetching marketplace NFTs:', error);
       toast.error('Failed to load NFTs');
@@ -288,6 +305,13 @@ const Marketplace = () => {
                         <span className="text-xs text-white font-mono">#{nft.token_id}</span>
                       </div>
                     )}
+                    {/* Sales Count Badge */}
+                    {nft.sales_count !== undefined && nft.sales_count > 0 && (
+                      <div className="absolute top-2 left-2 bg-green-500/20 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center space-x-1">
+                        <TrendingUp className="w-3 h-3 text-green-400" />
+                        <span className="text-xs text-green-400 font-semibold">{nft.sales_count} sold</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* NFT Details */}
@@ -311,6 +335,16 @@ const Marketplace = () => {
                         Minted {new Date(nft.minted_at || nft.created_at).toLocaleDateString()}
                       </span>
                     </div>
+
+                    {/* Sales Count */}
+                    {nft.sales_count !== undefined && (
+                      <div className="flex items-center space-x-2 mb-3">
+                        <TrendingUp className="w-4 h-4 text-gray-400" />
+                        <span className="text-xs text-gray-400">
+                          {nft.sales_count === 0 ? 'Never sold' : `Sold ${nft.sales_count} time${nft.sales_count > 1 ? 's' : ''}`}
+                        </span>
+                      </div>
+                    )}
 
                     {/* Price and Buy Button */}
                     <div className="flex items-center justify-between">
