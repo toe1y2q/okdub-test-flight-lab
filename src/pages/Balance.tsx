@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Starfield } from '@/components/Starfield';
-import { LogOut, Zap, DollarSign, TrendingUp, History, ArrowRightLeft } from 'lucide-react';
+import { LogOut, Zap, DollarSign, TrendingUp, History, ArrowRightLeft, Coins, Lock, Unlock, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface UserBalance {
@@ -35,15 +34,24 @@ interface Transaction {
   created_at: string;
 }
 
+interface OkdubTokens {
+  token_amount: number;
+  staked_amount: number;
+}
+
 const Balance = () => {
   const { user, loading, signOut, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [balance, setBalance] = useState<UserBalance | null>(null);
   const [stats, setStats] = useState<LeaderboardStats | null>(null);
+  const [okdubTokens, setOkdubTokens] = useState<OkdubTokens | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingBalance, setLoadingBalance] = useState(true);
   const [pointsToConvert, setPointsToConvert] = useState<string>('');
+  const [tokensToStake, setTokensToStake] = useState<string>('');
+  const [tokensToUnstake, setTokensToUnstake] = useState<string>('');
   const [converting, setConverting] = useState(false);
+  const [stakingAction, setStakingAction] = useState<'stake' | 'unstake' | null>(null);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -56,6 +64,7 @@ const Balance = () => {
       fetchBalance();
       fetchStats();
       fetchTransactions();
+      fetchOkdubTokens();
     }
   }, [isAuthenticated, user]);
 
@@ -107,6 +116,21 @@ const Balance = () => {
     }
   };
 
+  const fetchOkdubTokens = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('okdub_tokens')
+        .select('*')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      setOkdubTokens(data || { token_amount: 0, staked_amount: 0 });
+    } catch (error) {
+      console.error('Error fetching OKDUB tokens:', error);
+    }
+  };
+
   const handleConvertPoints = async () => {
     const points = parseInt(pointsToConvert);
     if (!points || points < 1000) {
@@ -133,6 +157,78 @@ const Balance = () => {
       toast.error(error.message || 'Failed to convert points');
     } finally {
       setConverting(false);
+    }
+  };
+
+  const handleStakeTokens = async () => {
+    const tokens = parseFloat(tokensToStake);
+    if (!tokens || tokens <= 0) {
+      toast.error('Please enter a valid amount to stake');
+      return;
+    }
+
+    if (tokens > (okdubTokens?.token_amount || 0)) {
+      toast.error('Insufficient tokens to stake');
+      return;
+    }
+
+    setStakingAction('stake');
+    try {
+      const { error } = await supabase
+        .from('okdub_tokens')
+        .update({
+          token_amount: (okdubTokens?.token_amount || 0) - tokens,
+          staked_amount: (okdubTokens?.staked_amount || 0) + tokens,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      toast.success(`Successfully staked ${tokens} OKDUB tokens!`);
+      setTokensToStake('');
+      fetchOkdubTokens();
+    } catch (error: any) {
+      console.error('Error staking tokens:', error);
+      toast.error('Failed to stake tokens');
+    } finally {
+      setStakingAction(null);
+    }
+  };
+
+  const handleUnstakeTokens = async () => {
+    const tokens = parseFloat(tokensToUnstake);
+    if (!tokens || tokens <= 0) {
+      toast.error('Please enter a valid amount to unstake');
+      return;
+    }
+
+    if (tokens > (okdubTokens?.staked_amount || 0)) {
+      toast.error('Insufficient staked tokens to unstake');
+      return;
+    }
+
+    setStakingAction('unstake');
+    try {
+      const { error } = await supabase
+        .from('okdub_tokens')
+        .update({
+          token_amount: (okdubTokens?.token_amount || 0) + tokens,
+          staked_amount: (okdubTokens?.staked_amount || 0) - tokens,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      toast.success(`Successfully unstaked ${tokens} OKDUB tokens!`);
+      setTokensToUnstake('');
+      fetchOkdubTokens();
+    } catch (error: any) {
+      console.error('Error unstaking tokens:', error);
+      toast.error('Failed to unstake tokens');
+    } finally {
+      setStakingAction(null);
     }
   };
 
@@ -169,7 +265,7 @@ const Balance = () => {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8 }}
-        className="relative z-10 flex justify-between items-center p-6 backdrop-blur-sm"
+        className="relative z-10 flex justify-between items-center p-4 sm:p-6 backdrop-blur-sm"
       >
         <motion.div 
           whileHover={{ scale: 1.05 }}
@@ -179,29 +275,37 @@ const Balance = () => {
           <motion.div 
             animate={{ rotate: 360 }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-xl flex items-center justify-center"
+            className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-xl flex items-center justify-center"
           >
-            <Zap className="w-6 h-6 text-white" />
+            <Zap className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </motion.div>
-          <span className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+          <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
             Okdub
           </span>
         </motion.div>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4">
           <Button
             onClick={() => navigate('/dashboard')}
             variant="outline"
             size="sm"
-            className="border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10"
+            className="border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10 text-xs sm:text-sm"
           >
             Dashboard
+          </Button>
+          <Button
+            onClick={() => navigate('/nfts')}
+            variant="outline"
+            size="sm"
+            className="border-purple-400/30 text-purple-400 hover:bg-purple-400/10 text-xs sm:text-sm"
+          >
+            My NFTs
           </Button>
           <Button
             onClick={() => navigate('/marketplace')}
             variant="outline"
             size="sm"
-            className="border-purple-400/30 text-purple-400 hover:bg-purple-400/10"
+            className="border-purple-400/30 text-purple-400 hover:bg-purple-400/10 text-xs sm:text-sm"
           >
             Marketplace
           </Button>
@@ -209,23 +313,23 @@ const Balance = () => {
             onClick={handleSignOut}
             variant="outline"
             size="sm"
-            className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+            className="border-red-500/50 text-red-400 hover:bg-red-500/10 text-xs sm:text-sm"
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
+            <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Sign Out</span>
           </Button>
         </div>
       </motion.nav>
 
-      <div className="relative z-10 p-6 max-w-7xl mx-auto">
+      <div className="relative z-10 p-4 sm:p-6 max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
-          <h1 className="text-4xl font-bold mb-3 text-cyan-400">Balance & Earnings</h1>
-          <p className="text-xl text-gray-400">Manage your points and cash balance</p>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-3 text-cyan-400">Balance & Earnings</h1>
+          <p className="text-lg sm:text-xl text-gray-400">Manage your points, cash balance, and OKDUB tokens</p>
         </motion.div>
 
         {/* Balance Cards */}
@@ -233,69 +337,78 @@ const Balance = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6 mb-6 sm:mb-8"
         >
-          <Card className="p-6 backdrop-blur-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/30">
-            <div className="flex items-center justify-between mb-4">
-              <Zap className="w-8 h-8 text-cyan-400" />
-              <span className="text-sm text-cyan-400 font-semibold">Points Balance</span>
+          <Card className="p-4 sm:p-6 backdrop-blur-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/30">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-400" />
+              <span className="text-xs sm:text-sm text-cyan-400 font-semibold">Points</span>
             </div>
-            <p className="text-3xl font-bold text-white">{stats?.points || 0}</p>
-            <p className="text-sm text-gray-400 mt-1">Available Points</p>
+            <p className="text-xl sm:text-3xl font-bold text-white">{stats?.points || 0}</p>
+            <p className="text-xs sm:text-sm text-gray-400 mt-1">Available</p>
           </Card>
 
-          <Card className="p-6 backdrop-blur-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
-            <div className="flex items-center justify-between mb-4">
-              <DollarSign className="w-8 h-8 text-green-400" />
-              <span className="text-sm text-green-400 font-semibold">Cash Balance</span>
+          <Card className="p-4 sm:p-6 backdrop-blur-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" />
+              <span className="text-xs sm:text-sm text-green-400 font-semibold">Cash</span>
             </div>
-            <p className="text-3xl font-bold text-white">${(balance?.cash_balance || 0).toFixed(2)}</p>
-            <p className="text-sm text-gray-400 mt-1">Available Cash</p>
+            <p className="text-xl sm:text-3xl font-bold text-white">${(balance?.cash_balance || 0).toFixed(2)}</p>
+            <p className="text-xs sm:text-sm text-gray-400 mt-1">Balance</p>
           </Card>
 
-          <Card className="p-6 backdrop-blur-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30">
-            <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="w-8 h-8 text-purple-400" />
-              <span className="text-sm text-purple-400 font-semibold">Total Earned</span>
+          <Card className="p-4 sm:p-6 backdrop-blur-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
+              <span className="text-xs sm:text-sm text-purple-400 font-semibold">Earned</span>
             </div>
-            <p className="text-3xl font-bold text-white">${(balance?.total_earned || 0).toFixed(2)}</p>
-            <p className="text-sm text-gray-400 mt-1">Lifetime Earnings</p>
+            <p className="text-xl sm:text-3xl font-bold text-white">${(balance?.total_earned || 0).toFixed(2)}</p>
+            <p className="text-xs sm:text-sm text-gray-400 mt-1">Total</p>
           </Card>
 
-          <Card className="p-6 backdrop-blur-xl bg-gradient-to-br from-orange-500/10 to-yellow-500/10 border border-orange-500/30">
-            <div className="flex items-center justify-between mb-4">
-              <ArrowRightLeft className="w-8 h-8 text-orange-400" />
-              <span className="text-sm text-orange-400 font-semibold">Conversion Rate</span>
+          <Card className="p-4 sm:p-6 backdrop-blur-xl bg-gradient-to-br from-orange-500/10 to-amber-500/10 border border-orange-500/30">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <Coins className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400" />
+              <span className="text-xs sm:text-sm text-orange-400 font-semibold">OKDUB</span>
             </div>
-            <p className="text-3xl font-bold text-white">1000:1</p>
-            <p className="text-sm text-gray-400 mt-1">Points to Dollar</p>
+            <p className="text-xl sm:text-3xl font-bold text-white">{(okdubTokens?.token_amount || 0).toLocaleString()}</p>
+            <p className="text-xs sm:text-sm text-gray-400 mt-1">Tokens</p>
+          </Card>
+
+          <Card className="p-4 sm:p-6 backdrop-blur-xl bg-gradient-to-br from-indigo-500/10 to-blue-500/10 border border-indigo-500/30">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <Lock className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-400" />
+              <span className="text-xs sm:text-sm text-indigo-400 font-semibold">Staked</span>
+            </div>
+            <p className="text-xl sm:text-3xl font-bold text-white">{(okdubTokens?.staked_amount || 0).toLocaleString()}</p>
+            <p className="text-xs sm:text-sm text-gray-400 mt-1">OKDUB</p>
           </Card>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
           {/* Points Conversion */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Card className="p-6 backdrop-blur-xl bg-white/5 border border-white/10">
-              <div className="flex items-center space-x-3 mb-6">
-                <ArrowRightLeft className="w-6 h-6 text-cyan-400" />
-                <h2 className="text-2xl font-bold text-white">Convert Points to Cash</h2>
+            <Card className="p-4 sm:p-6 backdrop-blur-xl bg-white/5 border border-white/10">
+              <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+                <ArrowRightLeft className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
+                <h2 className="text-lg sm:text-2xl font-bold text-white">Convert Points</h2>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Points to Convert (Minimum: 1000)
+                    Points (Min: 1000)
                   </label>
                   <Input
                     type="number"
                     value={pointsToConvert}
                     onChange={(e) => setPointsToConvert(e.target.value)}
-                    placeholder="Enter points amount"
-                    className="bg-slate-800/50 border-slate-700 text-white"
+                    placeholder="Enter points"
+                    className="bg-slate-800/50 border-slate-700 text-white text-sm"
                     min="1000"
                     step="1000"
                   />
@@ -309,27 +422,102 @@ const Balance = () => {
                 <Button
                   onClick={handleConvertPoints}
                   disabled={converting || !pointsToConvert || parseInt(pointsToConvert) < 1000}
-                  className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 font-semibold"
+                  className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 font-semibold text-sm"
                 >
-                  {converting ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Converting...
-                    </div>
-                  ) : (
-                    'Convert Points'
-                  )}
+                  {converting ? 'Converting...' : 'Convert Points'}
                 </Button>
               </div>
+            </Card>
+          </motion.div>
 
-              <div className="mt-6 p-4 bg-slate-800/30 rounded-lg">
-                <h3 className="text-sm font-semibold text-gray-300 mb-2">Conversion Info</h3>
-                <ul className="text-xs text-gray-400 space-y-1">
-                  <li>• 1000 points = $1.00 USD</li>
-                  <li>• Minimum conversion: 1000 points</li>
-                  <li>• Instant conversion</li>
-                  <li>• No conversion fees</li>
-                </ul>
+          {/* OKDUB Token Wallet */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <Card className="p-4 sm:p-6 backdrop-blur-xl bg-white/5 border border-white/10">
+              <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+                <Wallet className="w-5 h-5 sm:w-6 sm:h-6 text-orange-400" />
+                <h2 className="text-lg sm:text-2xl font-bold text-white">OKDUB Wallet</h2>
+              </div>
+
+              <div className="space-y-4">
+                {/* Stake Tokens */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Stake Tokens
+                  </label>
+                  <Input
+                    type="number"
+                    value={tokensToStake}
+                    onChange={(e) => setTokensToStake(e.target.value)}
+                    placeholder="Amount to stake"
+                    className="bg-slate-800/50 border-slate-700 text-white text-sm"
+                    min="0"
+                    max={okdubTokens?.token_amount || 0}
+                  />
+                  <Button
+                    onClick={handleStakeTokens}
+                    disabled={stakingAction === 'stake' || !tokensToStake}
+                    className="w-full mt-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 font-semibold text-sm"
+                  >
+                    {stakingAction === 'stake' ? (
+                      <div className="flex items-center">
+                        <Lock className="w-4 h-4 mr-2" />
+                        Staking...
+                      </div>
+                    ) : (
+                      <div className="flex items-center">
+                        <Lock className="w-4 h-4 mr-2" />
+                        Stake Tokens
+                      </div>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Unstake Tokens */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Unstake Tokens
+                  </label>
+                  <Input
+                    type="number"
+                    value={tokensToUnstake}
+                    onChange={(e) => setTokensToUnstake(e.target.value)}
+                    placeholder="Amount to unstake"
+                    className="bg-slate-800/50 border-slate-700 text-white text-sm"
+                    min="0"
+                    max={okdubTokens?.staked_amount || 0}
+                  />
+                  <Button
+                    onClick={handleUnstakeTokens}
+                    disabled={stakingAction === 'unstake' || !tokensToUnstake}
+                    className="w-full mt-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 font-semibold text-sm"
+                  >
+                    {stakingAction === 'unstake' ? (
+                      <div className="flex items-center">
+                        <Unlock className="w-4 h-4 mr-2" />
+                        Unstaking...
+                      </div>
+                    ) : (
+                      <div className="flex items-center">
+                        <Unlock className="w-4 h-4 mr-2" />
+                        Unstake Tokens
+                      </div>
+                    )}
+                  </Button>
+                </div>
+
+                <div className="mt-4 p-3 bg-slate-800/30 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-300 mb-2">Staking Benefits</h3>
+                  <ul className="text-xs text-gray-400 space-y-1">
+                    <li>• Earn rewards while staked</li>
+                    <li>• Access premium features</li>
+                    <li>• Token-gated NFT access</li>
+                    <li>• Governance voting rights</li>
+                  </ul>
+                </div>
               </div>
             </Card>
           </motion.div>
@@ -338,30 +526,30 @@ const Balance = () => {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.8 }}
           >
-            <Card className="p-6 backdrop-blur-xl bg-white/5 border border-white/10">
-              <div className="flex items-center space-x-3 mb-6">
-                <History className="w-6 h-6 text-purple-400" />
-                <h2 className="text-2xl font-bold text-white">Recent Transactions</h2>
+            <Card className="p-4 sm:p-6 backdrop-blur-xl bg-white/5 border border-white/10">
+              <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+                <History className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
+                <h2 className="text-lg sm:text-2xl font-bold text-white">Recent Transactions</h2>
               </div>
 
-              <div className="space-y-3 max-h-96 overflow-y-auto">
+              <div className="space-y-3 max-h-80 sm:max-h-96 overflow-y-auto">
                 {transactions.length > 0 ? (
                   transactions.map((transaction) => (
                     <div
                       key={transaction.id}
-                      className="p-4 bg-slate-800/30 rounded-lg border border-slate-700/50"
+                      className="p-3 sm:p-4 bg-slate-800/30 rounded-lg border border-slate-700/50"
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <p className="text-white font-medium">
+                          <p className="text-white font-medium text-sm">
                             {transaction.transaction_type === 'points_to_cash' ? 'Points Conversion' : transaction.transaction_type}
                           </p>
-                          <p className="text-sm text-gray-400">{transaction.description}</p>
+                          <p className="text-xs text-gray-400">{transaction.description}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-green-400 font-semibold">
+                          <p className="text-green-400 font-semibold text-sm">
                             ${transaction.amount.toFixed(2)}
                           </p>
                           {transaction.points_amount > 0 && (
