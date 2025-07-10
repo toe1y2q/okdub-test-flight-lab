@@ -153,6 +153,45 @@ export type Database = {
           },
         ]
       }
+      currency_deposits: {
+        Row: {
+          amount_naira: number
+          amount_usd: number
+          completed_at: string | null
+          created_at: string
+          deposit_method: string
+          exchange_rate: number
+          id: string
+          status: string
+          transaction_reference: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_naira: number
+          amount_usd: number
+          completed_at?: string | null
+          created_at?: string
+          deposit_method?: string
+          exchange_rate: number
+          id?: string
+          status?: string
+          transaction_reference?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_naira?: number
+          amount_usd?: number
+          completed_at?: string | null
+          created_at?: string
+          deposit_method?: string
+          exchange_rate?: number
+          id?: string
+          status?: string
+          transaction_reference?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       leaderboard_stats: {
         Row: {
           created_at: string
@@ -189,6 +228,36 @@ export type Database = {
           updated_at?: string
           user_id?: string
           weekly_points?: number
+        }
+        Relationships: []
+      }
+      mining_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          last_claim_at: string
+          started_at: string
+          total_mined: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_claim_at?: string
+          started_at?: string
+          total_mined?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_claim_at?: string
+          started_at?: string
+          total_mined?: number
+          user_id?: string
         }
         Relationships: []
       }
@@ -413,7 +482,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
-          payment_method: string
+          payment_method?: string
           solana_transaction_id?: string | null
           solana_wallet_address?: string | null
           status?: string

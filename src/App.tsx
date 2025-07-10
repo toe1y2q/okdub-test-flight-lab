@@ -24,6 +24,8 @@ import BountyReview from "./pages/BountyReview";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import SolanaWithdrawal from "./pages/SolanaWithdrawal";
+import CurrencyDeposit from "./pages/CurrencyDeposit";
+import Mining from "./pages/Mining";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +46,8 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/balance" element={<Balance />} />
           <Route path="/withdrawal" element={<SolanaWithdrawal />} />
+          <Route path="/currency-deposit" element={<CurrencyDeposit />} />
+          <Route path="/mining" element={<Mining />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/bounties" element={<BugBounties />} />

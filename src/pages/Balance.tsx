@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Starfield } from '@/components/Starfield';
-import { LogOut, Zap, DollarSign, TrendingUp, History, ArrowRightLeft, Coins, Lock, Unlock, Wallet } from 'lucide-react';
+import { LogOut, Zap, DollarSign, TrendingUp, History, ArrowRightLeft, Coins, Lock, Unlock, Wallet, Pickaxe, ArrowUpRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface UserBalance {
@@ -52,6 +52,7 @@ const Balance = () => {
   const [tokensToUnstake, setTokensToUnstake] = useState<string>('');
   const [converting, setConverting] = useState(false);
   const [stakingAction, setStakingAction] = useState<'stake' | 'unstake' | null>(null);
+  const [showStaking, setShowStaking] = useState(false);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -269,7 +270,7 @@ const Balance = () => {
       >
         <motion.div 
           whileHover={{ scale: 1.05 }}
-          className="flex items-center space-x-3 cursor-pointer"
+          className="flex items-center space-x-2 sm:space-x-3 cursor-pointer"
           onClick={() => navigate('/dashboard')}
         >
           <motion.div 
@@ -286,34 +287,26 @@ const Balance = () => {
         
         <div className="flex items-center space-x-2 sm:space-x-4">
           <Button
-            onClick={() => navigate('/dashboard')}
-            variant="outline"
-            size="sm"
-            className="border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10 text-xs sm:text-sm"
-          >
-            Dashboard
-          </Button>
-          <Button
             onClick={() => navigate('/nfts')}
             variant="outline"
             size="sm"
-            className="border-purple-400/30 text-purple-400 hover:bg-purple-400/10 text-xs sm:text-sm"
+            className="border-purple-400/30 text-purple-400 hover:bg-purple-400/10 text-xs sm:text-sm px-2 sm:px-4"
           >
             My NFTs
           </Button>
           <Button
-            onClick={() => navigate('/marketplace')}
+            onClick={() => navigate('/pricing')}
             variant="outline"
             size="sm"
-            className="border-purple-400/30 text-purple-400 hover:bg-purple-400/10 text-xs sm:text-sm"
+            className="border-green-400/30 text-green-400 hover:bg-green-400/10 text-xs sm:text-sm px-2 sm:px-4"
           >
-            Marketplace
+            Pricing
           </Button>
           <Button
             onClick={handleSignOut}
             variant="outline"
             size="sm"
-            className="border-red-500/50 text-red-400 hover:bg-red-500/10 text-xs sm:text-sm"
+            className="border-red-500/50 text-red-400 hover:bg-red-500/10 text-xs sm:text-sm px-2 sm:px-4"
           >
             <LogOut className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Sign Out</span>
@@ -321,15 +314,55 @@ const Balance = () => {
         </div>
       </motion.nav>
 
-      <div className="relative z-10 p-4 sm:p-6 max-w-7xl mx-auto">
+      <div className="relative z-10 p-4 sm:p-6 max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="mb-6 sm:mb-8"
         >
-          <h1 className="text-3xl sm:text-4xl font-bold mb-3 text-cyan-400">Balance & Earnings</h1>
-          <p className="text-lg sm:text-xl text-gray-400">Manage your points, cash balance, and OKDUB tokens</p>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 text-cyan-400">Balance & Wallet</h1>
+          <p className="text-lg sm:text-xl text-gray-400">Manage your funds and tokens</p>
+        </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8"
+        >
+          <Button
+            onClick={() => navigate('/currency-deposit')}
+            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 p-3 sm:p-4 h-auto flex-col space-y-1 sm:space-y-2"
+          >
+            <DollarSign className="w-5 h-5 sm:w-6 sm:h-6" />
+            <span className="text-xs sm:text-sm font-semibold">Deposit</span>
+          </Button>
+          
+          <Button
+            onClick={() => navigate('/mining')}
+            className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 p-3 sm:p-4 h-auto flex-col space-y-1 sm:space-y-2"
+          >
+            <Pickaxe className="w-5 h-5 sm:w-6 sm:h-6" />
+            <span className="text-xs sm:text-sm font-semibold">Mine</span>
+          </Button>
+          
+          <Button
+            onClick={() => navigate('/withdrawal')}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 p-3 sm:p-4 h-auto flex-col space-y-1 sm:space-y-2"
+          >
+            <ArrowUpRight className="w-5 h-5 sm:w-6 sm:h-6" />
+            <span className="text-xs sm:text-sm font-semibold">Withdraw</span>
+          </Button>
+
+          <Button
+            onClick={() => setShowStaking(true)}
+            className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 p-3 sm:p-4 h-auto flex-col space-y-1 sm:space-y-2"
+          >
+            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
+            <span className="text-xs sm:text-sm font-semibold">Stake</span>
+          </Button>
         </motion.div>
 
         {/* Balance Cards */}

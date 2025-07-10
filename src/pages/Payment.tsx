@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -6,13 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Zap, ArrowLeft } from 'lucide-react';
 import { Starfield } from '@/components/Starfield';
 import { SolanaPayment } from '@/components/SolanaPayment';
-import { LogOut, Zap, CreditCard, Lock, ArrowLeft } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CartItem {
@@ -24,6 +20,8 @@ interface CartItem {
     description: string;
     image_url: string;
     price: number;
+    user_id: string;
+    original_creator_id: string;
   };
 }
 
@@ -33,17 +31,6 @@ const Payment = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loadingCart, setLoadingCart] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
-  const [paymentData, setPaymentData] = useState({
-    payment_method: 'credit_card',
-    card_number: '',
-    expiry_date: '',
-    cvv: '',
-    cardholder_name: '',
-    billing_address: '',
-    city: '',
-    postal_code: '',
-    country: 'US'
-  });
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -69,13 +56,32 @@ const Payment = () => {
             name,
             description,
             image_url,
-            price
+            price,
+            user_id,
+            original_creator_id
           )
         `)
         .eq('user_id', user?.id);
 
       if (error) throw error;
-      setCartItems(data || []);
+      
+      // Filter out NFTs created by the current user
+      const validCartItems = (data || []).filter(item => {
+        const isCreator = item.nft.user_id === user?.id || item.nft.original_creator_id === user?.id;
+        if (isCreator) {
+          // Remove invalid items from cart
+          supabase
+            .from('cart_items')
+            .delete()
+            .eq('id', item.id)
+            .then(() => {
+              toast.error(`Removed "${item.nft.name}" - you cannot buy your own NFT`);
+            });
+        }
+        return !isCreator;
+      });
+      
+      setCartItems(validCartItems);
     } catch (error) {
       console.error('Error fetching cart items:', error);
       toast.error('Failed to load cart items');
@@ -84,70 +90,8 @@ const Payment = () => {
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setPaymentData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
   const getTotalAmount = () => {
     return cartItems.reduce((total, item) => total + (item.nft.price * item.quantity), 0);
-  };
-
-  const processTraditionalPayment = async () => {
-    if (!paymentData.card_number || !paymentData.expiry_date || !paymentData.cvv || !paymentData.cardholder_name) {
-      toast.error('Please fill in all payment details');
-      return;
-    }
-
-    if (cartItems.length === 0) {
-      toast.error('Your cart is empty');
-      return;
-    }
-
-    setProcessingPayment(true);
-    try {
-      const totalAmount = getTotalAmount();
-
-      const { data: payment, error: paymentError } = await supabase
-        .from('payments')
-        .insert({
-          user_id: user?.id,
-          total_amount: totalAmount,
-          currency: 'USD',
-          payment_method: paymentData.payment_method,
-          status: 'completed',
-          transaction_id: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          completed_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (paymentError) throw paymentError;
-
-      const paymentItems = cartItems.map(item => ({
-        payment_id: payment.id,
-        nft_id: item.nft.id,
-        price: item.nft.price,
-        quantity: item.quantity
-      }));
-
-      const { error: itemsError } = await supabase
-        .from('payment_items')
-        .insert(paymentItems);
-
-      if (itemsError) throw itemsError;
-
-      await clearCart();
-      toast.success('Payment processed successfully!');
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Error processing payment:', error);
-      toast.error('Payment failed. Please try again.');
-    } finally {
-      setProcessingPayment(false);
-    }
   };
 
   const clearCart = async () => {
@@ -248,12 +192,23 @@ const Payment = () => {
           className="mb-8"
         >
           <h1 className="text-4xl font-bold mb-3 text-green-400">Secure Payment</h1>
-          <p className="text-xl text-gray-400">Complete your NFT purchase</p>
+          <p className="text-xl text-gray-400">Complete your NFT purchase with Solana</p>
         </motion.div>
 
         {loadingCart ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-400"></div>
+          </div>
+        ) : cartItems.length === 0 ? (
+          <div className="text-center py-20">
+            <h2 className="text-2xl font-bold text-gray-400 mb-4">Your cart is empty</h2>
+            <p className="text-gray-500 mb-8">Add some NFTs to your cart to proceed with payment</p>
+            <Button
+              onClick={() => navigate('/marketplace')}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            >
+              Browse Marketplace
+            </Button>
           </div>
         ) : (
           <div className="grid lg:grid-cols-2 gap-8">
@@ -308,104 +263,17 @@ const Payment = () => {
               </Card>
             </motion.div>
 
-            {/* Payment Methods */}
+            {/* Solana Payment Only */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <Tabs defaultValue="traditional" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="traditional">Credit Card</TabsTrigger>
-                  <TabsTrigger value="solana">Solana</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="traditional">
-                  <Card className="p-6 backdrop-blur-xl bg-white/5 border border-white/10">
-                    <h3 className="text-xl font-bold text-white mb-6 flex items-center">
-                      <Lock className="w-5 h-5 mr-2 text-green-400" />
-                      Payment Details
-                    </h3>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="payment_method" className="text-white">Payment Method</Label>
-                        <Select value={paymentData.payment_method} onValueChange={(value) => handleInputChange('payment_method', value)}>
-                          <SelectTrigger className="bg-slate-800/50 border-gray-600 text-white">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="credit_card">Credit Card</SelectItem>
-                            <SelectItem value="debit_card">Debit Card</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="cardholder_name" className="text-white">Cardholder Name</Label>
-                        <Input
-                          id="cardholder_name"
-                          value={paymentData.cardholder_name}
-                          onChange={(e) => handleInputChange('cardholder_name', e.target.value)}
-                          placeholder="John Doe"
-                          className="bg-slate-800/50 border-gray-600 text-white"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="card_number" className="text-white">Card Number</Label>
-                        <Input
-                          id="card_number"
-                          value={paymentData.card_number}
-                          onChange={(e) => handleInputChange('card_number', e.target.value)}
-                          placeholder="1234 5678 9012 3456"
-                          className="bg-slate-800/50 border-gray-600 text-white"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="expiry_date" className="text-white">Expiry Date</Label>
-                          <Input
-                            id="expiry_date"
-                            value={paymentData.expiry_date}
-                            onChange={(e) => handleInputChange('expiry_date', e.target.value)}
-                            placeholder="MM/YY"
-                            className="bg-slate-800/50 border-gray-600 text-white"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="cvv" className="text-white">CVV</Label>
-                          <Input
-                            id="cvv"
-                            value={paymentData.cvv}
-                            onChange={(e) => handleInputChange('cvv', e.target.value)}
-                            placeholder="123"
-                            className="bg-slate-800/50 border-gray-600 text-white"
-                          />
-                        </div>
-                      </div>
-
-                      <Button
-                        onClick={processTraditionalPayment}
-                        disabled={processingPayment || cartItems.length === 0}
-                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-lg py-3"
-                      >
-                        <CreditCard className="w-5 h-5 mr-2" />
-                        {processingPayment ? 'Processing...' : `Pay $${getTotalAmount().toFixed(2)}`}
-                      </Button>
-                    </div>
-                  </Card>
-                </TabsContent>
-                
-                <TabsContent value="solana">
-                  <SolanaPayment
-                    totalAmount={getTotalAmount() / 100} // Convert to SOL (approximate)
-                    cartItems={cartItems}
-                    onPaymentSuccess={handlePaymentSuccess}
-                  />
-                </TabsContent>
-              </Tabs>
+              <SolanaPayment
+                totalAmount={getTotalAmount() / 100} // Convert to SOL (approximate)
+                cartItems={cartItems}
+                onPaymentSuccess={handlePaymentSuccess}
+              />
             </motion.div>
           </div>
         )}

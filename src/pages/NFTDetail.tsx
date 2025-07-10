@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -169,7 +168,12 @@ const NFTDetail = () => {
   };
 
   const handlePurchase = async () => {
-    if (!nft || !user || !sale) return;
+    if (!nft || !user || !sale || isCreator) {
+      if (isCreator) {
+        toast.error('You cannot purchase your own NFT');
+      }
+      return;
+    }
 
     try {
       // Update sale record
@@ -214,7 +218,8 @@ const NFTDetail = () => {
   };
 
   const isOwner = nft && user && (nft.current_owner_id === user.id || nft.user_id === user.id);
-  const canPurchase = nft && user && sale && !isOwner && sale.status === 'listed';
+  const isCreator = nft && user && (nft.user_id === user.id || nft.original_creator_id === user.id);
+  const canPurchase = nft && user && sale && !isOwner && !isCreator && sale.status === 'listed';
 
   if (loading || loadingNft) {
     return (
@@ -444,17 +449,24 @@ const NFTDetail = () => {
                     className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                   >
                     <ShoppingCart className="w-4 h-4 mr-2" />
-                    Purchase NFT
+                    Purchase with Solana
                   </Button>
                 )}
 
-                {!isOwner && !canPurchase && nft.for_sale && (
+                {isCreator && nft.for_sale && (
+                  <div className="text-center text-yellow-400 py-4 bg-yellow-500/10 rounded-lg">
+                    <p className="font-semibold">This is your NFT</p>
+                    <p className="text-sm">You cannot purchase your own creation</p>
+                  </div>
+                )}
+
+                {!isOwner && !canPurchase && !isCreator && nft.for_sale && (
                   <div className="text-center text-gray-400 py-4">
                     This NFT is not available for purchase
                   </div>
                 )}
 
-                {!nft.for_sale && !isOwner && (
+                {!nft.for_sale && !isOwner && !isCreator && (
                   <div className="text-center text-gray-400 py-4">
                     This NFT is not for sale
                   </div>
