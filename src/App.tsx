@@ -23,6 +23,7 @@ import BountyCompletion from "./pages/BountyCompletion";
 import BountyReview from "./pages/BountyReview";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
+import SolanaWithdrawal from "./pages/SolanaWithdrawal";
 
 const queryClient = new QueryClient();
 

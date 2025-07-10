@@ -177,7 +177,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-400">Points</p>
-                <p className="text-2xl font-bold text-cyan-400">{stats.points.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-cyan-400">{stats.totalPoints.toLocaleString()}</p>
               </div>
             </div>
           </Card>
