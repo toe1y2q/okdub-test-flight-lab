@@ -86,17 +86,15 @@ const Index = () => {
           whileHover={{ scale: 1.05 }}
           className="flex items-center space-x-3"
         >
-          <motion.img
-            src="/lovable-uploads/d6075415-c86b-4692-8b91-5fe9033284cd.png"
-            alt="Okdub Casino"
-            className="w-12 h-12 object-contain"
-            animate={{ 
-              filter: ["drop-shadow(0 0 10px rgba(6, 182, 212, 0.5))", "drop-shadow(0 0 20px rgba(147, 51, 234, 0.5))", "drop-shadow(0 0 10px rgba(6, 182, 212, 0.5))"] 
-            }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          />
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-xl flex items-center justify-center"
+          >
+            <Zap className="w-6 h-6 text-white" />
+          </motion.div>
           <span className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-            Okdub Casino
+            Okdub
           </span>
         </motion.div>
         
