@@ -463,12 +463,41 @@ export type Database = {
           },
         ]
       }
+      payment_methods: {
+        Row: {
+          created_at: string
+          details: Json | null
+          id: string
+          is_primary: boolean
+          method_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          is_primary?: boolean
+          method_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          is_primary?: boolean
+          method_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           completed_at: string | null
           created_at: string
           currency: string
+          flutterwave_reference: string | null
           id: string
+          payment_data: Json | null
           payment_method: string
           solana_transaction_id: string | null
           solana_wallet_address: string | null
@@ -481,7 +510,9 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           currency?: string
+          flutterwave_reference?: string | null
           id?: string
+          payment_data?: Json | null
           payment_method?: string
           solana_transaction_id?: string | null
           solana_wallet_address?: string | null
@@ -494,7 +525,9 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           currency?: string
+          flutterwave_reference?: string | null
           id?: string
+          payment_data?: Json | null
           payment_method?: string
           solana_transaction_id?: string | null
           solana_wallet_address?: string | null
@@ -577,6 +610,45 @@ export type Database = {
           project_type?: string
           status?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      staking_positions: {
+        Row: {
+          amount_staked: number
+          created_at: string
+          current_value: number
+          end_date: string
+          id: string
+          roi_percentage: number
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_staked: number
+          created_at?: string
+          current_value: number
+          end_date: string
+          id?: string
+          roi_percentage?: number
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_staked?: number
+          created_at?: string
+          current_value?: number
+          end_date?: string
+          id?: string
+          roi_percentage?: number
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -775,6 +847,42 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawal_requests: {
+        Row: {
+          account_details: Json | null
+          amount: number
+          created_at: string
+          flutterwave_reference: string | null
+          id: string
+          processed_at: string | null
+          status: string
+          user_id: string
+          withdrawal_method: string
+        }
+        Insert: {
+          account_details?: Json | null
+          amount: number
+          created_at?: string
+          flutterwave_reference?: string | null
+          id?: string
+          processed_at?: string | null
+          status?: string
+          user_id: string
+          withdrawal_method?: string
+        }
+        Update: {
+          account_details?: Json | null
+          amount?: number
+          created_at?: string
+          flutterwave_reference?: string | null
+          id?: string
+          processed_at?: string | null
+          status?: string
+          user_id?: string
+          withdrawal_method?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       marketplace_nfts: {
@@ -811,6 +919,10 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_staking_returns: {
+        Args: { _user_id: string; _position_id: string }
+        Returns: number
+      }
       convert_points_to_cash: {
         Args: { _user_id: string; _points_amount: number }
         Returns: undefined
