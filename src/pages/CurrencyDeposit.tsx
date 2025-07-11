@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Starfield } from '@/components/Starfield';
-import { LogOut, Zap, ArrowRight, ArrowLeftRight, History, CreditCard, Wallet } from 'lucide-react';
+import { LogOut, ArrowRight, ArrowLeftRight, History, CreditCard, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { FlutterwavePayment } from '@/components/FlutterwavePayment';
 import { useSolanaWallet } from '@/hooks/useSolanaWallet';
@@ -78,7 +79,7 @@ const CurrencyDeposit = () => {
         .from('naira_wallets')
         .select('*')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
       
       if (error && error.code !== 'PGRST116') {
         throw error;
@@ -283,15 +284,17 @@ const CurrencyDeposit = () => {
           className="flex items-center space-x-3 cursor-pointer"
           onClick={() => navigate('/dashboard')}
         >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-xl flex items-center justify-center"
-          >
-            <Zap className="w-6 h-6 text-white" />
-          </motion.div>
+          <motion.img
+            src="/lovable-uploads/d6075415-c86b-4692-8b91-5fe9033284cd.png"
+            alt="Okdub Casino"
+            className="w-12 h-12 object-contain"
+            animate={{ 
+              filter: ["drop-shadow(0 0 10px rgba(6, 182, 212, 0.5))", "drop-shadow(0 0 20px rgba(147, 51, 234, 0.5))", "drop-shadow(0 0 10px rgba(6, 182, 212, 0.5))"] 
+            }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          />
           <span className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-            Okdub
+            Okdub Casino
           </span>
         </motion.div>
         
