@@ -7,6 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Starfield } from '@/components/Starfield';
+import { PageLoader } from '@/components/PageLoader';
+import { Skeleton } from '@/components/ui/skeleton';
 import Leaderboard from '@/components/Leaderboard';
 import ImprovedNFTMinter from '@/components/ImprovedNFTMinter';
 import TestingEngine from '@/components/TestingEngine';
@@ -26,6 +28,7 @@ const Dashboard = () => {
     cashBalance: 0,
     totalEarned: 0
   });
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -42,6 +45,7 @@ const Dashboard = () => {
   const fetchUserStats = async () => {
     if (!user) return;
 
+    setIsLoadingStats(true);
     try {
       // Fetch from leaderboard_stats
       const { data: leaderboardData, error: leaderboardError } = await supabase
@@ -74,6 +78,8 @@ const Dashboard = () => {
       });
     } catch (error) {
       console.error('Error fetching user stats:', error);
+    } finally {
+      setIsLoadingStats(false);
     }
   };
 
@@ -192,7 +198,11 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-xs sm:text-sm text-gray-400">Points</p>
-                <p className="text-lg sm:text-2xl font-bold text-cyan-400">{stats.totalPoints.toLocaleString()}</p>
+                {isLoadingStats ? (
+                  <Skeleton className="h-6 w-16 bg-white/10" />
+                ) : (
+                  <p className="text-lg sm:text-2xl font-bold text-cyan-400">{stats.totalPoints.toLocaleString()}</p>
+                )}
               </div>
             </div>
           </Card>
@@ -204,7 +214,11 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="text-xs sm:text-sm text-gray-400">Tests Run</p>
-                <p className="text-lg sm:text-2xl font-bold text-yellow-400">{stats.totalTests}</p>
+                {isLoadingStats ? (
+                  <Skeleton className="h-6 w-12 bg-white/10" />
+                ) : (
+                  <p className="text-lg sm:text-2xl font-bold text-yellow-400">{stats.totalTests}</p>
+                )}
               </div>
             </div>
           </Card>
