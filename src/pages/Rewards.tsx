@@ -86,7 +86,7 @@ const Rewards = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-poppins">
+    <div className="min-h-screen bg-background text-foreground relative overflow-hidden font-poppins">
       <Starfield />
       
       {/* Navigation */}
@@ -118,7 +118,7 @@ const Rewards = () => {
             onClick={() => navigate('/dashboard')}
             variant="outline"
             size="sm"
-            className="border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10"
+            className="border-primary/30 text-primary hover:bg-primary/10"
           >
             Dashboard
           </Button>
@@ -126,7 +126,7 @@ const Rewards = () => {
             onClick={handleSignOut}
             variant="outline"
             size="sm"
-            className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+            className="border-destructive/50 text-destructive hover:bg-destructive/10"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Sign Out
@@ -141,8 +141,8 @@ const Rewards = () => {
           transition={{ duration: 0.6 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold mb-3 text-cyan-400">Rewards & Achievements</h1>
-          <p className="text-xl text-gray-400">Unlock rewards as you test and mint</p>
+          <h1 className="text-4xl font-bold mb-3 text-primary">Rewards & Achievements</h1>
+          <p className="text-xl text-muted-foreground">Unlock rewards as you test and mint</p>
         </motion.div>
 
         {/* User Stats Summary */}
@@ -152,25 +152,25 @@ const Rewards = () => {
           transition={{ delay: 0.2 }}
           className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
         >
-          <Card className="p-6 backdrop-blur-xl bg-white/5 border border-white/10 text-center">
-            <Trophy className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white">{userStats?.points || 0}</p>
-            <p className="text-sm text-gray-400">Total Points</p>
+          <Card className="p-6 backdrop-blur-xl bg-card/50 border text-center">
+            <Trophy className="w-8 h-8 text-primary mx-auto mb-2" />
+            <p className="text-2xl font-bold text-foreground">{userStats?.points || 0}</p>
+            <p className="text-sm text-muted-foreground">Total Points</p>
           </Card>
-          <Card className="p-6 backdrop-blur-xl bg-white/5 border border-white/10 text-center">
-            <Target className="w-8 h-8 text-green-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white">{userStats?.total_tests || 0}</p>
-            <p className="text-sm text-gray-400">Tests Completed</p>
+          <Card className="p-6 backdrop-blur-xl bg-card/50 border text-center">
+            <Target className="w-8 h-8 text-primary mx-auto mb-2" />
+            <p className="text-2xl font-bold text-foreground">{userStats?.total_tests || 0}</p>
+            <p className="text-sm text-muted-foreground">Tests Completed</p>
           </Card>
-          <Card className="p-6 backdrop-blur-xl bg-white/5 border border-white/10 text-center">
-            <Star className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white">{userStats?.total_nfts || 0}</p>
-            <p className="text-sm text-gray-400">NFTs Minted</p>
+          <Card className="p-6 backdrop-blur-xl bg-card/50 border text-center">
+            <Star className="w-8 h-8 text-primary mx-auto mb-2" />
+            <p className="text-2xl font-bold text-foreground">{userStats?.total_nfts || 0}</p>
+            <p className="text-sm text-muted-foreground">NFTs Minted</p>
           </Card>
-          <Card className="p-6 backdrop-blur-xl bg-white/5 border border-white/10 text-center">
-            <Flame className="w-8 h-8 text-orange-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white">{userStats?.success_rate || 0}%</p>
-            <p className="text-sm text-gray-400">Success Rate</p>
+          <Card className="p-6 backdrop-blur-xl bg-card/50 border text-center">
+            <Flame className="w-8 h-8 text-primary mx-auto mb-2" />
+            <p className="text-2xl font-bold text-foreground">{userStats?.success_rate || 0}%</p>
+            <p className="text-sm text-muted-foreground">Success Rate</p>
           </Card>
         </motion.div>
 
@@ -186,29 +186,29 @@ const Rewards = () => {
             >
               <Card className={`p-6 backdrop-blur-xl border transition-all duration-300 ${
                 reward.unlocked 
-                  ? 'bg-gradient-to-br from-green-500/10 to-cyan-500/10 border-green-500/30' 
-                  : 'bg-white/5 border-white/10'
+                  ? 'bg-gradient-to-br from-primary/10 to-accent/10 border-primary/30' 
+                  : 'bg-card/50 border-border'
               }`}>
                 <div className="flex items-center space-x-4 mb-4">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                    reward.unlocked ? 'bg-green-500/20' : 'bg-gray-500/20'
+                    reward.unlocked ? 'bg-primary/20' : 'bg-muted/40'
                   }`}>
                     <reward.icon className={`w-6 h-6 ${
-                      reward.unlocked ? 'text-green-400' : 'text-gray-400'
+                      reward.unlocked ? 'text-primary' : 'text-muted-foreground'
                     }`} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-white">{reward.name}</h3>
-                    <p className="text-sm text-gray-400">{reward.description}</p>
+                    <h3 className="font-semibold text-foreground">{reward.name}</h3>
+                    <p className="text-sm text-muted-foreground">{reward.description}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-cyan-400 font-bold">+{reward.points} points</span>
+                  <span className="text-primary font-bold">+{reward.points} points</span>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                     reward.unlocked 
-                      ? 'bg-green-500/20 text-green-400' 
-                      : 'bg-gray-500/20 text-gray-400'
+                      ? 'bg-primary/20 text-primary' 
+                      : 'bg-muted/40 text-muted-foreground'
                   }`}>
                     {reward.unlocked ? 'Unlocked' : 'Locked'}
                   </span>
