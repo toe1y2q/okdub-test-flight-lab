@@ -33,6 +33,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const SolanaWithdrawal = lazy(() => import("./pages/SolanaWithdrawal"));
 const CurrencyDeposit = lazy(() => import("./pages/CurrencyDeposit"));
 const Mining = lazy(() => import("./pages/Mining"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const LearnMore = lazy(() => import("./pages/LearnMore"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,6 +97,8 @@ const App = () => (
             <Route path="/pricing" element={<AnimatedRoute><Pricing /></AnimatedRoute>} />
             <Route path="/cart" element={<AnimatedRoute><Cart /></AnimatedRoute>} />
             <Route path="/payment" element={<AnimatedRoute><Payment /></AnimatedRoute>} />
+            <Route path="/payment-success" element={<AnimatedRoute><PaymentSuccess /></AnimatedRoute>} />
+            <Route path="/learn-more" element={<AnimatedRoute><LearnMore /></AnimatedRoute>} />
             <Route path="*" element={<AnimatedRoute><NotFound /></AnimatedRoute>} />
           </Routes>
         </AnimatePresence>

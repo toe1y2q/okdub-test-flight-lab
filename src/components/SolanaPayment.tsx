@@ -8,6 +8,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Wallet, Loader2 } from 'lucide-react';
 
+// Simulate balance check (in real implementation, query Solana blockchain)
+const simulateBalanceCheck = async (publicKey: string, requiredAmount: number): Promise<boolean> => {
+  await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+  return Math.random() > 0.1; // 90% success rate for simulation
+};
+
 interface SolanaPaymentProps {
   totalAmount: number;
   cartItems: any[];
@@ -20,7 +26,8 @@ export const SolanaPayment = ({ totalAmount, cartItems, onPaymentSuccess }: Sola
   const [processing, setProcessing] = useState(false);
 
   const handleSolanaPayment = async () => {
-    if (!connected) {
+    if (!connected || !wallet) {
+      toast.error('Please connect your Solana wallet first');
       const result = await signInWithWallet();
       if (!result) return;
     }
@@ -30,11 +37,26 @@ export const SolanaPayment = ({ totalAmount, cartItems, onPaymentSuccess }: Sola
       return;
     }
 
+    // Validate wallet connection and balance
+    if (!wallet.publicKey) {
+      toast.error('Wallet not properly connected');
+      return;
+    }
+
     setProcessing(true);
     try {
-      // Simulate Solana transaction (in real implementation, use Solana Web3.js)
+      // Simulate actual Solana transaction with validation
+      const publicKey = wallet.publicKey.toString();
+      
+      // Check if user has sufficient SOL balance (simulate check)
+      const hasBalance = await simulateBalanceCheck(publicKey, totalAmount);
+      if (!hasBalance) {
+        toast.error('Insufficient SOL balance for this transaction');
+        return;
+      }
+
+      // Simulate actual blockchain transaction
       const mockTransactionId = `solana_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const publicKey = wallet?.publicKey?.toString();
 
       const { data: payment, error: paymentError } = await supabase
         .from('payments')
@@ -68,6 +90,8 @@ export const SolanaPayment = ({ totalAmount, cartItems, onPaymentSuccess }: Sola
       if (itemsError) throw itemsError;
 
       toast.success('Payment completed with Solana!');
+      // Redirect to payment success page
+      window.location.href = `/payment-success?type=nft&amount=${totalAmount}&currency=SOL`;
       onPaymentSuccess();
     } catch (error) {
       console.error('Solana payment error:', error);

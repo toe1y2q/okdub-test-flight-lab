@@ -5,9 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Zap, ArrowLeft } from 'lucide-react';
+import { Zap, ArrowLeft, Wallet } from 'lucide-react';
 import { Starfield } from '@/components/Starfield';
 import { SolanaPayment } from '@/components/SolanaPayment';
+import { FlutterwavePayment } from '@/components/FlutterwavePayment';
 import { LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -263,17 +264,50 @@ const Payment = () => {
               </Card>
             </motion.div>
 
-            {/* Solana Payment Only */}
+            {/* Payment Methods */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
+              className="space-y-4"
             >
               <SolanaPayment
                 totalAmount={getTotalAmount() / 100} // Convert to SOL (approximate)
                 cartItems={cartItems}
                 onPaymentSuccess={handlePaymentSuccess}
               />
+              
+              <div className="flex items-center space-x-4 my-4">
+                <hr className="flex-1 border-gray-600" />
+                <span className="text-gray-400 text-sm">OR</span>
+                <hr className="flex-1 border-gray-600" />
+              </div>
+
+              <Card className="p-6 backdrop-blur-xl bg-white/5 border border-white/10">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                  <Wallet className="w-5 h-5 mr-2 text-blue-400" />
+                  Pay with Flutterwave
+                </h3>
+                
+                <div className="mb-4">
+                  <p className="text-gray-300 mb-2">Total: ₦{(getTotalAmount() * 600).toLocaleString()}</p>
+                  <p className="text-sm text-gray-400">Secure payment with cards, bank transfer, and more</p>
+                </div>
+
+                <FlutterwavePayment
+                  amount={getTotalAmount() * 600} // Convert to Naira
+                  currency="NGN"
+                  email={user?.email || ''}
+                  onSuccess={() => {
+                    toast.success('Payment completed with Flutterwave!');
+                    window.location.href = `/payment-success?type=nft&amount=${getTotalAmount() * 600}&currency=NGN`;
+                    handlePaymentSuccess();
+                  }}
+                  onError={() => {
+                    toast.error('Flutterwave payment failed. Please try again.');
+                  }}
+                />
+              </Card>
             </motion.div>
           </div>
         )}

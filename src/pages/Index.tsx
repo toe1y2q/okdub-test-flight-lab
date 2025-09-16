@@ -210,6 +210,7 @@ const Index = () => {
               </Button>
               
               <Button
+                onClick={() => navigate('/learn-more')}
                 variant="outline"
                 size="lg"
                 className="px-8 py-4 text-lg font-medium border-glass-border/30 hover:bg-glass/20 w-full sm:w-auto"
