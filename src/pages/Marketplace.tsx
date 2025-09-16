@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Starfield } from '@/components/Starfield';
 import { LogOut, Zap, Search, Eye, User, Calendar, DollarSign, ShoppingCart, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { OptimizedImage } from '@/components/OptimizedImage';
 
 interface MarketplaceNFT {
   id: string;
@@ -62,32 +63,24 @@ const Marketplace = () => {
 
   const fetchMarketplaceNfts = async () => {
     try {
+      // Optimize query by limiting results and removing unnecessary Promise.all
       const { data, error } = await supabase
         .from('marketplace_nfts')
         .select('*')
         .eq('for_sale', true)
-        .order('minted_at', { ascending: false });
+        .order('minted_at', { ascending: false })
+        .limit(20); // Limit for better performance
 
       if (error) throw error;
 
-      // Fetch sales count for each NFT
-      const nftsWithSalesCount = await Promise.all(
-        (data || []).map(async (nft) => {
-          const { count } = await supabase
-            .from('nft_sales')
-            .select('*', { count: 'exact', head: true })
-            .eq('nft_id', nft.id)
-            .eq('status', 'sold');
-          
-          return {
-            ...nft,
-            sales_count: count || 0
-          };
-        })
-      );
+      // Set NFTs without sales count initially for faster loading
+      const nftsData = (data || []).map(nft => ({
+        ...nft,
+        sales_count: 0 // Default value, can be loaded separately if needed
+      }));
 
-      setNfts(nftsWithSalesCount);
-      setFilteredNfts(nftsWithSalesCount);
+      setNfts(nftsData);
+      setFilteredNfts(nftsData);
     } catch (error) {
       console.error('Error fetching marketplace NFTs:', error);
       toast.error('Failed to load NFTs');
@@ -102,21 +95,39 @@ const Marketplace = () => {
       return;
     }
 
+    // Check if user is trying to buy their own NFT
+    const nft = filteredNfts.find(n => n.id === nftId);
+    if (nft && (nft.username === user.email?.split('@')[0] || nft.first_name === user.user_metadata?.first_name)) {
+      toast.error('You cannot add your own NFT to cart');
+      return;
+    }
+
     try {
+      // Check if item already exists in cart
+      const { data: existingItem } = await supabase
+        .from('cart_items')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('nft_id', nftId)
+        .single();
+
+      if (existingItem) {
+        toast.info('Item already in cart');
+        navigate('/cart');
+        return;
+      }
+
       const { error } = await supabase
         .from('cart_items')
-        .upsert({
+        .insert({
           user_id: user.id,
           nft_id: nftId,
           quantity: 1
-        }, {
-          onConflict: 'user_id,nft_id'
         });
 
       if (error) throw error;
 
       toast.success('Added to cart!');
-      navigate('/cart');
     } catch (error) {
       console.error('Error adding to cart:', error);
       toast.error('Failed to add to cart');
@@ -283,23 +294,14 @@ const Marketplace = () => {
                 className="group"
               >
                 <Card className="overflow-hidden backdrop-blur-xl bg-white/5 border border-white/10 hover:border-purple-500/30 transition-all duration-300">
-                  {/* NFT Image */}
+                   {/* NFT Image */}
                   <div className="relative aspect-square overflow-hidden">
-                    {nft.image_url ? (
-                      <img
-                        src={nft.image_url}
-                        alt={nft.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = '/placeholder.svg';
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
-                        <Zap className="w-16 h-16 text-purple-400 opacity-50" />
-                      </div>
-                    )}
+                    <OptimizedImage
+                      src={nft.image_url}
+                      alt={nft.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fallbackIcon={Zap}
+                    />
                     {nft.token_id && (
                       <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm rounded-lg px-2 py-1">
                         <span className="text-xs text-white font-mono">#{nft.token_id}</span>

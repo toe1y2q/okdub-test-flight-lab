@@ -52,13 +52,32 @@ const Cart = () => {
             name,
             description,
             image_url,
-            price
+            price,
+            user_id,
+            original_creator_id
           )
         `)
         .eq('user_id', user?.id);
 
       if (error) throw error;
-      setCartItems(data || []);
+      
+      // Filter out NFTs created by the current user
+      const validCartItems = (data || []).filter(item => {
+        const isCreator = item.nft.user_id === user?.id || item.nft.original_creator_id === user?.id;
+        if (isCreator) {
+          // Remove invalid items from cart
+          supabase
+            .from('cart_items')
+            .delete()
+            .eq('id', item.id)
+            .then(() => {
+              toast.error(`Removed "${item.nft.name}" - you cannot buy your own NFT`);
+            });
+        }
+        return !isCreator;
+      });
+      
+      setCartItems(validCartItems);
     } catch (error) {
       console.error('Error fetching cart items:', error);
       toast.error('Failed to load cart items');

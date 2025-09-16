@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Starfield } from '@/components/Starfield';
+import { PaymentGuard } from '@/components/PaymentGuard';
 import { LogOut, Zap, Check, Crown, Star, Rocket, Users, Bug, FolderPlus } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -191,6 +192,73 @@ const Pricing = () => {
         </motion.div>
 
         {/* Pricing Cards */}
+        <PaymentGuard 
+          feature="advanced pricing plans"
+          fallback={
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+              {pricingPlans.map((plan, index) => {
+                const IconComponent = plan.icon;
+                return (
+                  <motion.div
+                    key={plan.name}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ scale: 1.02, y: -5 }}
+                  >
+                    <Card className={`p-8 backdrop-blur-xl border h-full relative ${
+                      plan.popular 
+                        ? 'bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/50' 
+                        : 'bg-white/5 border-white/10'
+                    }`}>
+                      {plan.popular && (
+                        <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                          <Star className="w-3 h-3 mr-1" />
+                          Most Popular
+                        </Badge>
+                      )}
+                      
+                      <div className="text-center mb-8">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full mb-4">
+                          <IconComponent className="w-8 h-8 text-white" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
+                        <div className="flex items-baseline justify-center mb-2">
+                          <span className="text-4xl font-bold text-white">{plan.price}</span>
+                          <span className="text-gray-400 ml-1">{plan.period}</span>
+                        </div>
+                        <p className="text-gray-400">{plan.description}</p>
+                      </div>
+
+                      <ul className="space-y-3 mb-8">
+                        {plan.features.map((feature, featureIndex) => (
+                          <li key={featureIndex} className="flex items-center text-gray-300">
+                            <Check className="w-5 h-5 text-green-400 mr-3 flex-shrink-0" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <Button
+                        onClick={plan.name === 'Pro' && !isPro ? handleUpgradeToPro : undefined}
+                        disabled={plan.disabled || upgrading}
+                        className={`w-full ${
+                          plan.popular
+                            ? 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700'
+                            : plan.current
+                            ? 'bg-gray-600 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700'
+                        }`}
+                      >
+                        {upgrading ? 'Upgrading...' : plan.buttonText}
+                      </Button>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          }
+        >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
           {pricingPlans.map((plan, index) => {
             const IconComponent = plan.icon;
@@ -253,6 +321,7 @@ const Pricing = () => {
             );
           })}
         </div>
+        </PaymentGuard>
 
         {/* Features Comparison */}
         <motion.div
