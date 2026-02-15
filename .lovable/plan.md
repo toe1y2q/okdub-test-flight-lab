@@ -1,132 +1,158 @@
 
 
-# Fix Payments, Wallet, Flutterwave Integration, Token Miner & Performance
+# Unified Testnet Sandbox, Wallet Dashboard, Flutterwave Key UI, PWA & Bug Bounty Fixes
 
 ## Overview
-This plan addresses 5 key areas: broken payments/wallet, Flutterwave API key setup, pricing integration with Flutterwave, token miner improvements, and performance optimization for the lagging website.
+This plan covers 5 major areas: a testnet sandbox for testing payments/mining, a wallet health dashboard, a UI for updating Flutterwave keys, PWA installability, and ensuring bug bounties and rewards work correctly.
 
 ---
 
-## 1. Flutterwave API Key Setup
+## 1. PWA (Progressive Web App) Setup
 
-Currently, the Flutterwave public key is **hardcoded** in `FlutterwavePayment.tsx` (line 22). This is a publishable key so it's acceptable in the codebase, but you'll need to provide your own Flutterwave public key to replace the existing one.
+Users will be able to install the app on their phone or desktop directly from the browser.
 
-Once you confirm your Flutterwave public key, it will be stored in the code. For the **secret key** (needed for payment verification), it will be securely stored as an environment secret and used in a backend function to verify transactions.
+**Changes:**
+- Install `vite-plugin-pwa` dependency
+- Update `vite.config.ts` to configure PWA with manifest, icons, and service worker (with `/~oauth` in `navigateFallbackDenylist`)
+- Add PWA meta tags to `index.html` (theme-color, apple-touch-icon, etc.)
+- Create a new `/install` page with install prompt trigger and instructions
+- Add route in `App.tsx`
+- The `vercel.json` file already has the correct SPA rewrite rule (`"/(.*)" -> "/index.html"`) -- no changes needed there
 
-**What's needed from you:**
-- Your Flutterwave **public key** (starts with `FLWPUBK-`)
-- Your Flutterwave **secret key** (starts with `FLWSECK-`) for server-side verification
-
----
-
-## 2. Fix Payments Not Working
-
-**Problems identified:**
-- `SolanaPayment.tsx` uses a simulated balance check (`Math.random()`) instead of real wallet interaction -- payments "complete" without actual Solana deduction
-- `FlutterwavePayment.tsx` loads the Flutterwave script dynamically but doesn't verify payments server-side
-- No payment verification backend function exists
-
-**Fix plan:**
-- Create a backend function `verify-flutterwave-payment` that verifies transaction status with Flutterwave's API using the secret key
-- Update `FlutterwavePayment.tsx` to call verification after callback
-- Update `SolanaPayment.tsx` to require actual wallet signature before marking payment complete
-- Add proper error handling and payment status tracking
+**PWA Manifest config:**
+- App name: "Okdub Casino"
+- Short name: "Okdub"
+- Theme color: #0f172a (slate-950)
+- Background color: #0f172a
+- Display: standalone
+- Icons: Use the existing logo at `/lovable-uploads/3e7c2c9a-0c07-4a59-afbc-c68bc09a5223.png`
 
 ---
 
-## 3. Connect Pricing Page to Flutterwave
+## 2. Testnet Sandbox Page
 
-**Problem:** The Pricing page's "Upgrade to Pro" button directly updates the database without requiring payment.
+A dedicated `/sandbox` page where users can test Flutterwave payments and token mining in a sandboxed mode without real money.
 
-**Fix plan:**
-- When user clicks "Upgrade to Pro", open Flutterwave checkout for $29
-- Only after successful payment + server verification, update subscription to "pro"
-- Add Flutterwave payment option on the Pricing page
-- Keep the `PaymentGuard` component but integrate it with actual payment flow
-
----
-
-## 4. Fix Wallet Deposits & Withdrawals
-
-**Problems identified:**
-- `SolanaWithdrawal.tsx` simulates transactions with `setTimeout` and mock tx hashes -- no real Solana interaction
-- `CurrencyDeposit.tsx` Solana deposit just inserts a "pending" record without actual wallet transaction
-- Wallet connection depends on Phantom browser extension which may not be installed
-
-**Fix plan:**
-- Add clear messaging when Phantom wallet is not installed (link to install)
-- For Solana deposits: require actual wallet transaction signature before recording deposit
-- For withdrawals: add proper validation and show "feature coming soon" for actual Solana transfers (since real transfers need a backend signing wallet)
-- Ensure Flutterwave deposits work end-to-end with verification
+**Changes:**
+- Create `src/pages/Sandbox.tsx` with:
+  - A "Test Payment" section using Flutterwave's test mode (test public key)
+  - A "Test Mining" section that simulates mining claims without writing to the real `okdub_tokens` table
+  - Visual indicators showing "TESTNET MODE" prominently
+  - Mock transaction results displayed inline
+- Add `/sandbox` route in `App.tsx`
 
 ---
 
-## 5. Token Miner Setup
+## 3. Wallet Health Dashboard
 
-The token miner at `src/pages/Mining.tsx` is already functional with:
-- 0.05 OKDUB tokens per day mining rate
-- Hourly claim intervals
-- Database integration with `mining_sessions` and `okdub_tokens` tables
+A new `/wallet-health` page showing real-time connection status for MetaMask and Phantom (Solana) wallets.
 
-**Improvements planned:**
-- Add a visual mining animation (pickaxe/coin animation)
-- Add mining stats dashboard (total mined across all sessions)
-- Ensure the miner doesn't run multiple concurrent sessions per user
-
----
-
-## 6. Performance Debugging & Fixes
-
-**Major performance issues identified:**
-
-### A. Starfield Component (BIGGEST ISSUE)
-The `Starfield.tsx` renders **300 stars** with canvas animations running via `requestAnimationFrame` on **every single page**. Each star has:
-- Shadow blur effects (`ctx.shadowBlur`)
-- Cross glow effects for large stars
-- Gradient background recalculated every frame
-
-This runs continuously even when not visible.
-
-**Fix:** Reduce stars to 100, remove shadow blur (very expensive), simplify animation, and add `will-change` optimization.
-
-### B. usePageTransition Hook
-Every route change triggers a fake 300ms loading delay (`setTimeout`), making navigation feel sluggish for no benefit.
-
-**Fix:** Remove the artificial delay entirely.
-
-### C. AnimatePresence with mode="wait"
-`AnimatePresence mode="wait"` in `App.tsx` forces exit animations to complete before enter animations start, adding perceived delay.
-
-**Fix:** Remove `mode="wait"` or switch to `mode="sync"`.
-
-### D. Framer Motion Overuse
-Nearly every page has:
-- Nav bar animation (`initial={{ y: -100 }}`) 
-- Logo spinning infinitely (`animate={{ rotate: 360 }}`)
-- Multiple `whileHover` scale animations
-
-**Fix:** Reduce animation complexity, remove infinite spinning logo animation, use CSS transitions instead of Framer Motion for simple hover effects.
-
-### E. LoadingScreen Component
-Uses heavy Framer Motion animations for a loading indicator.
-
-**Fix:** Simplify to a lightweight CSS-only spinner.
+**Changes:**
+- Create `src/pages/WalletHealth.tsx` with:
+  - MetaMask detection (`window.ethereum`) and connection status
+  - Phantom/Solana detection (`window.solana`) and connection status
+  - TonConnect placeholder (shows "Coming Soon" since TonConnect SDK is not yet installed)
+  - Network info (chain ID, account address) when connected
+  - "Connect" / "Disconnect" buttons for each wallet
+  - Connection health indicators (green/red dots)
+- Add `/wallet-health` route in `App.tsx`
+- Add a "Wallet Health" quick link on the Dashboard page
 
 ---
 
-## Technical Summary of Changes
+## 4. Flutterwave Public Key Update Flow
+
+Allow admins/users to update the Flutterwave public key from the Settings page without redeploying.
+
+**Changes:**
+- Create a database table `app_settings` to store configurable keys like the Flutterwave public key
+- Add an "API Keys" section to `src/pages/Settings.tsx` with:
+  - Input field for Flutterwave public key (masked by default)
+  - Save button that writes to `app_settings` table
+  - Only authenticated users can update their own keys
+- Update `FlutterwavePayment.tsx` to read the public key from the database (with fallback to the hardcoded key)
+- Create a custom hook `useFlutterwaveKey` to fetch the key
+
+**Database migration:**
+```sql
+CREATE TABLE public.app_settings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  setting_key text NOT NULL,
+  setting_value text NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE(user_id, setting_key)
+);
+
+ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own settings" ON public.app_settings
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own settings" ON public.app_settings
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own settings" ON public.app_settings
+  FOR UPDATE USING (auth.uid() = user_id);
+```
+
+---
+
+## 5. Bug Bounty & Rewards Fixes
+
+After reviewing the code, the bug bounty and rewards systems are structurally correct. The key issues to fix:
+
+**Bug Bounty fixes:**
+- The `bounty_completions` table has all RLS policies set to `RESTRICTIVE` (not `PERMISSIVE`). When both the bounty creator's SELECT policy and the completer's SELECT policy are restrictive, they effectively block each other. The bounty review page (`BountyReview.tsx`) queries `bounty_completions` where the current user is the bounty creator -- but the RLS policies only allow viewing by `completed_by = auth.uid()` OR via a JOIN to `bug_bounties`. Since these are RESTRICTIVE, both conditions must match simultaneously, which fails. Fix: Change these policies to PERMISSIVE.
+
+**Database migration to fix RLS:**
+```sql
+-- Drop restrictive policies and recreate as permissive
+DROP POLICY IF EXISTS "Bounty creators can view completions" ON bounty_completions;
+DROP POLICY IF EXISTS "Users can view own completions" ON bounty_completions;
+DROP POLICY IF EXISTS "Bounty creators can update completions" ON bounty_completions;
+DROP POLICY IF EXISTS "Completers can update own" ON bounty_completions;
+DROP POLICY IF EXISTS "Users can insert completions" ON bounty_completions;
+
+-- Recreate as PERMISSIVE (default)
+CREATE POLICY "Bounty creators can view completions" ON bounty_completions
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM bug_bounties WHERE bug_bounties.id = bounty_completions.bounty_id AND bug_bounties.submitted_by = auth.uid())
+  );
+
+CREATE POLICY "Users can view own completions" ON bounty_completions
+  FOR SELECT USING (completed_by = auth.uid());
+
+CREATE POLICY "Bounty creators can update completions" ON bounty_completions
+  FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM bug_bounties WHERE bug_bounties.id = bounty_completions.bounty_id AND bug_bounties.submitted_by = auth.uid())
+  );
+
+CREATE POLICY "Completers can update own" ON bounty_completions
+  FOR UPDATE USING (auth.uid() = completed_by);
+
+CREATE POLICY "Users can insert completions" ON bounty_completions
+  FOR INSERT WITH CHECK (auth.uid() = completed_by);
+```
+
+**Rewards page:** The rewards page works correctly -- it reads from `leaderboard_stats` and shows achievement badges based on thresholds. No code changes needed, but the rewards only unlock when actual data exists (tests run, NFTs minted). This is working as designed.
+
+---
+
+## Technical Summary
 
 | File | Change |
 |------|--------|
-| `src/components/Starfield.tsx` | Reduce stars to 100, remove shadowBlur, simplify rendering |
-| `src/hooks/usePageTransition.tsx` | Remove artificial 300ms delay |
-| `src/App.tsx` | Remove `AnimatePresence mode="wait"`, simplify route wrapping |
-| `src/components/LoadingScreen.tsx` | Simplify to CSS-only loading |
-| `src/components/FlutterwavePayment.tsx` | Accept API key as prop or env, add server verification call |
-| `src/components/SolanaPayment.tsx` | Require real wallet signature, remove fake balance check |
-| `src/pages/Pricing.tsx` | Integrate Flutterwave payment for Pro upgrade |
-| `src/pages/SolanaWithdrawal.tsx` | Add Phantom install check, improve UX messaging |
-| `src/pages/CurrencyDeposit.tsx` | Fix Flutterwave deposit verification flow |
-| `src/pages/Mining.tsx` | Add duplicate session prevention, visual improvements |
-| `supabase/functions/verify-flutterwave-payment/index.ts` | **New** -- backend function to verify Flutterwave payments |
+| `vite.config.ts` | Add vite-plugin-pwa configuration |
+| `index.html` | Add PWA meta tags |
+| `src/pages/Install.tsx` | **New** -- PWA install page |
+| `src/pages/Sandbox.tsx` | **New** -- Testnet sandbox for payments/mining |
+| `src/pages/WalletHealth.tsx` | **New** -- Wallet connection health dashboard |
+| `src/App.tsx` | Add 3 new routes: /install, /sandbox, /wallet-health |
+| `src/pages/Settings.tsx` | Add Flutterwave public key management section |
+| `src/hooks/useFlutterwaveKey.tsx` | **New** -- Hook to fetch Flutterwave key from DB |
+| `src/components/FlutterwavePayment.tsx` | Use dynamic key from useFlutterwaveKey hook |
+| `src/pages/Dashboard.tsx` | Add Wallet Health quick link |
+| Database migration | Create `app_settings` table, fix `bounty_completions` RLS policies |
 
