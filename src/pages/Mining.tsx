@@ -103,6 +103,22 @@ const Mining = () => {
 
   const startMining = async () => {
     try {
+      // Check for existing active session to prevent duplicates
+      const { data: existing, error: checkError } = await supabase
+        .from('mining_sessions')
+        .select('id')
+        .eq('user_id', user?.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+      
+      if (existing) {
+        toast.info('You already have an active mining session!');
+        fetchMiningSession();
+        return;
+      }
+
       const { error } = await supabase
         .from('mining_sessions')
         .insert({
