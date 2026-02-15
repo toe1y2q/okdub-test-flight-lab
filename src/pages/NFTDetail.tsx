@@ -24,8 +24,7 @@ interface NFTDetail {
   for_sale: boolean;
   created_at: string;
   minted_at: string;
-  current_owner_id: string;
-  original_creator_id: string;
+  original_creator_id: string | null;
   user_id: string;
 }
 
@@ -192,7 +191,7 @@ const NFTDetail = () => {
       const { error: nftError } = await supabase
         .from('nft_mints')
         .update({ 
-          current_owner_id: user.id,
+          user_id: user.id,
           for_sale: false,
           price: 0
         })
@@ -217,7 +216,7 @@ const NFTDetail = () => {
     }
   };
 
-  const isOwner = nft && user && (nft.current_owner_id === user.id || nft.user_id === user.id);
+  const isOwner = nft && user && nft.user_id === user.id;
   const isCreator = nft && user && (nft.user_id === user.id || nft.original_creator_id === user.id);
   const canPurchase = nft && user && sale && !isOwner && !isCreator && sale.status === 'listed';
 
