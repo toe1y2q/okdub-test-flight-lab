@@ -14,13 +14,770 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bounty_completions: {
+        Row: {
+          bounty_id: string
+          completed_at: string
+          completed_by: string
+          completion_proof: string
+          completion_url: string | null
+          created_at: string
+          id: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          bounty_id: string
+          completed_at?: string
+          completed_by: string
+          completion_proof: string
+          completion_url?: string | null
+          created_at?: string
+          id?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          bounty_id?: string
+          completed_at?: string
+          completed_by?: string
+          completion_proof?: string
+          completion_url?: string | null
+          created_at?: string
+          id?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bounty_completions_bounty_id_fkey"
+            columns: ["bounty_id"]
+            isOneToOne: false
+            referencedRelation: "bug_bounties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bug_bounties: {
+        Row: {
+          claimed_by: string | null
+          created_at: string
+          description: string
+          id: string
+          project_id: string | null
+          reward_amount: number
+          severity: string
+          status: string
+          submitted_by: string | null
+          title: string
+        }
+        Insert: {
+          claimed_by?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          project_id?: string | null
+          reward_amount?: number
+          severity?: string
+          status?: string
+          submitted_by?: string | null
+          title: string
+        }
+        Update: {
+          claimed_by?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          project_id?: string | null
+          reward_amount?: number
+          severity?: string
+          status?: string
+          submitted_by?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      cart_items: {
+        Row: {
+          created_at: string
+          id: string
+          nft_id: string
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nft_id: string
+          quantity?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nft_id?: string
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_nft_id_fkey"
+            columns: ["nft_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_nfts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_nft_id_fkey"
+            columns: ["nft_id"]
+            isOneToOne: false
+            referencedRelation: "nft_mints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      currency_deposits: {
+        Row: {
+          amount_naira: number
+          amount_usd: number
+          completed_at: string | null
+          created_at: string
+          deposit_method: string
+          exchange_rate: number
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_naira?: number
+          amount_usd?: number
+          completed_at?: string | null
+          created_at?: string
+          deposit_method: string
+          exchange_rate?: number
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_naira?: number
+          amount_usd?: number
+          completed_at?: string | null
+          created_at?: string
+          deposit_method?: string
+          exchange_rate?: number
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      leaderboard_stats: {
+        Row: {
+          created_at: string
+          id: string
+          points: number
+          success_rate: number
+          total_nfts: number
+          total_tests: number
+          updated_at: string
+          user_id: string
+          weekly_points: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          points?: number
+          success_rate?: number
+          total_nfts?: number
+          total_tests?: number
+          updated_at?: string
+          user_id: string
+          weekly_points?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          points?: number
+          success_rate?: number
+          total_nfts?: number
+          total_tests?: number
+          updated_at?: string
+          user_id?: string
+          weekly_points?: number
+        }
+        Relationships: []
+      }
+      mining_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          last_claim_at: string
+          started_at: string
+          total_mined: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_claim_at?: string
+          started_at?: string
+          total_mined?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_claim_at?: string
+          started_at?: string
+          total_mined?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      naira_wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nft_mints: {
+        Row: {
+          category: string | null
+          contract_address: string | null
+          created_at: string
+          creator_royalty: number | null
+          description: string | null
+          edition_size: number | null
+          for_sale: boolean | null
+          id: string
+          image_url: string | null
+          is_limited_edition: boolean | null
+          minted_at: string | null
+          name: string
+          network: string
+          original_creator_id: string | null
+          price: number | null
+          status: string
+          tags: string[] | null
+          token_id: string | null
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          contract_address?: string | null
+          created_at?: string
+          creator_royalty?: number | null
+          description?: string | null
+          edition_size?: number | null
+          for_sale?: boolean | null
+          id?: string
+          image_url?: string | null
+          is_limited_edition?: boolean | null
+          minted_at?: string | null
+          name: string
+          network?: string
+          original_creator_id?: string | null
+          price?: number | null
+          status?: string
+          tags?: string[] | null
+          token_id?: string | null
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          contract_address?: string | null
+          created_at?: string
+          creator_royalty?: number | null
+          description?: string | null
+          edition_size?: number | null
+          for_sale?: boolean | null
+          id?: string
+          image_url?: string | null
+          is_limited_edition?: boolean | null
+          minted_at?: string | null
+          name?: string
+          network?: string
+          original_creator_id?: string | null
+          price?: number | null
+          status?: string
+          tags?: string[] | null
+          token_id?: string | null
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nft_sales: {
+        Row: {
+          buyer_id: string | null
+          created_at: string
+          id: string
+          nft_id: string
+          price: number
+          seller_id: string
+          sold_at: string | null
+          status: string
+        }
+        Insert: {
+          buyer_id?: string | null
+          created_at?: string
+          id?: string
+          nft_id: string
+          price: number
+          seller_id: string
+          sold_at?: string | null
+          status?: string
+        }
+        Update: {
+          buyer_id?: string | null
+          created_at?: string
+          id?: string
+          nft_id?: string
+          price?: number
+          seller_id?: string
+          sold_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_sales_nft_id_fkey"
+            columns: ["nft_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_nfts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nft_sales_nft_id_fkey"
+            columns: ["nft_id"]
+            isOneToOne: false
+            referencedRelation: "nft_mints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      okdub_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          staked_amount: number
+          token_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          staked_amount?: number
+          token_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          staked_amount?: number
+          token_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payment_items: {
+        Row: {
+          created_at: string
+          id: string
+          nft_id: string | null
+          payment_id: string
+          price: number
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nft_id?: string | null
+          payment_id: string
+          price: number
+          quantity?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nft_id?: string | null
+          payment_id?: string
+          price?: number
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_items_nft_id_fkey"
+            columns: ["nft_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_nfts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_items_nft_id_fkey"
+            columns: ["nft_id"]
+            isOneToOne: false
+            referencedRelation: "nft_mints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_items_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          currency: string
+          id: string
+          payment_method: string
+          solana_transaction_id: string | null
+          solana_wallet_address: string | null
+          status: string
+          total_amount: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_method?: string
+          solana_transaction_id?: string | null
+          solana_wallet_address?: string | null
+          status?: string
+          total_amount: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_method?: string
+          solana_transaction_id?: string | null
+          solana_wallet_address?: string | null
+          status?: string
+          total_amount?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string
+          wallet_address: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          updated_at?: string
+          wallet_address?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          budget: number
+          client_user_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          project_type: string
+          status: string
+        }
+        Insert: {
+          budget?: number
+          client_user_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          project_type?: string
+          status?: string
+        }
+        Update: {
+          budget?: number
+          client_user_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          project_type?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      subscription_tiers: {
+        Row: {
+          created_at: string
+          features: string[] | null
+          id: string
+          name: string
+          required_tokens: number
+        }
+        Insert: {
+          created_at?: string
+          features?: string[] | null
+          id?: string
+          name: string
+          required_tokens?: number
+        }
+        Update: {
+          created_at?: string
+          features?: string[] | null
+          id?: string
+          name?: string
+          required_tokens?: number
+        }
+        Relationships: []
+      }
+      test_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          execution_time: number | null
+          gas_used: number | null
+          id: string
+          network: string
+          results: Json | null
+          status: string
+          test_type: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          execution_time?: number | null
+          gas_used?: number | null
+          id?: string
+          network: string
+          results?: Json | null
+          status?: string
+          test_type: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          execution_time?: number | null
+          gas_used?: number | null
+          id?: string
+          network?: string
+          results?: Json | null
+          status?: string
+          test_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          points_amount: number
+          status: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          points_amount?: number
+          status?: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          points_amount?: number
+          status?: string
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_balances: {
+        Row: {
+          cash_balance: number
+          created_at: string
+          id: string
+          points_balance: number
+          total_earned: number
+          total_withdrawn: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cash_balance?: number
+          created_at?: string
+          id?: string
+          points_balance?: number
+          total_earned?: number
+          total_withdrawn?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cash_balance?: number
+          created_at?: string
+          id?: string
+          points_balance?: number
+          total_earned?: number
+          total_withdrawn?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          started_at: string
+          subscription_tier: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          started_at?: string
+          subscription_tier?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          started_at?: string
+          subscription_tier?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallet_auth: {
+        Row: {
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          user_id: string
+          wallet_address: string
+          wallet_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          user_id: string
+          wallet_address: string
+          wallet_type?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          user_id?: string
+          wallet_address?: string
+          wallet_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      marketplace_nfts: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          first_name: string | null
+          for_sale: boolean | null
+          id: string | null
+          image_url: string | null
+          last_name: string | null
+          minted_at: string | null
+          name: string | null
+          price: number | null
+          token_id: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      convert_points_to_cash: {
+        Args: { _points_amount: number; _user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
