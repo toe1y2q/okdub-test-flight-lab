@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Starfield } from '@/components/Starfield';
 import { PaymentGuard } from '@/components/PaymentGuard';
+import { FlutterwavePayment } from '@/components/FlutterwavePayment';
 import { LogOut, Zap, Check, Crown, Star, Rocket, Users, Bug, FolderPlus } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -28,34 +29,34 @@ const Pricing = () => {
     }
   };
 
-  const handleUpgradeToPro = async () => {
+  const handleUpgradeToPro = () => {
     if (!user) {
       navigate('/auth');
       return;
     }
-
+    // Payment is now handled via Flutterwave checkout below
     setUpgrading(true);
+  };
+
+  const handlePaymentSuccess = async () => {
     try {
       const { error } = await supabase
         .from('user_subscriptions')
-        .update({
+        .upsert({
+          user_id: user!.id,
           subscription_tier: 'pro',
           is_active: true,
           started_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
+        }, { onConflict: 'user_id' });
 
       if (error) throw error;
 
       toast.success('Successfully upgraded to Pro! 🚀');
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1500);
+      setUpgrading(false);
+      setTimeout(() => navigate('/dashboard'), 1500);
     } catch (error) {
       console.error('Error upgrading subscription:', error);
-      toast.error('Failed to upgrade subscription');
-    } finally {
+      toast.error('Payment received but failed to activate. Please contact support.');
       setUpgrading(false);
     }
   };
@@ -239,19 +240,29 @@ const Pricing = () => {
                         ))}
                       </ul>
 
-                      <Button
-                        onClick={plan.name === 'Pro' && !isPro ? handleUpgradeToPro : undefined}
-                        disabled={plan.disabled || upgrading}
-                        className={`w-full ${
-                          plan.popular
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700'
-                            : plan.current
-                            ? 'bg-gray-600 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700'
-                        }`}
-                      >
-                        {upgrading ? 'Upgrading...' : plan.buttonText}
-                      </Button>
+                      {plan.name === 'Pro' && !isPro && isAuthenticated ? (
+                        <FlutterwavePayment
+                          amount={29}
+                          currency="USD"
+                          email={user?.email || ''}
+                          onSuccess={handlePaymentSuccess}
+                          onError={() => { toast.error('Payment failed'); setUpgrading(false); }}
+                        />
+                      ) : (
+                        <Button
+                          disabled={plan.disabled || upgrading}
+                          onClick={plan.name === 'Pro' && !isPro ? handleUpgradeToPro : undefined}
+                          className={`w-full ${
+                            plan.popular
+                              ? 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700'
+                              : plan.current
+                              ? 'bg-gray-600 cursor-not-allowed'
+                              : 'bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700'
+                          }`}
+                        >
+                          {plan.buttonText}
+                        </Button>
+                      )}
                     </Card>
                   </motion.div>
                 );
@@ -303,19 +314,29 @@ const Pricing = () => {
                     ))}
                   </ul>
 
-                  <Button
-                    onClick={plan.name === 'Pro' && !isPro ? handleUpgradeToPro : undefined}
-                    disabled={plan.disabled || upgrading}
-                    className={`w-full ${
-                      plan.popular
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700'
-                        : plan.current
-                        ? 'bg-gray-600 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700'
-                    }`}
-                  >
-                    {upgrading ? 'Upgrading...' : plan.buttonText}
-                  </Button>
+                  {plan.name === 'Pro' && !isPro && isAuthenticated ? (
+                    <FlutterwavePayment
+                      amount={29}
+                      currency="USD"
+                      email={user?.email || ''}
+                      onSuccess={handlePaymentSuccess}
+                      onError={() => { toast.error('Payment failed'); setUpgrading(false); }}
+                    />
+                  ) : (
+                    <Button
+                      disabled={plan.disabled || upgrading}
+                      onClick={plan.name === 'Pro' && !isPro ? handleUpgradeToPro : undefined}
+                      className={`w-full ${
+                        plan.popular
+                          ? 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700'
+                          : plan.current
+                          ? 'bg-gray-600 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700'
+                      }`}
+                    >
+                      {plan.buttonText}
+                    </Button>
+                  )}
                 </Card>
               </motion.div>
             );

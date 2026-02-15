@@ -4,9 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
-import { usePageTransition } from "@/hooks/usePageTransition";
-import { PageLoader } from "@/components/PageLoader";
 import { lazy, Suspense } from "react";
 import { LoadingScreen } from "@/components/LoadingScreen";
 
@@ -39,34 +36,19 @@ const LearnMore = lazy(() => import("./pages/LearnMore"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 10 * 60 * 1000, // 10 minutes for better caching
-      gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
+      staleTime: 10 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
       refetchOnWindowFocus: false,
-      retry: 1, // Reduce retries for faster failure
+      retry: 1,
     },
   },
 });
 
-const AnimatedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isLoading } = usePageTransition();
-
-  if (isLoading) {
-    return <PageLoader message="Loading page..." />;
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-    >
-      <Suspense fallback={<LoadingScreen message="Loading page..." />}>
-        {children}
-      </Suspense>
-    </motion.div>
-  );
-};
+const P = ({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<LoadingScreen message="Loading page..." />}>
+    {children}
+  </Suspense>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -74,34 +56,32 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AnimatePresence mode="wait">
-          <Routes>
-            <Route path="/" element={<AnimatedRoute><Index /></AnimatedRoute>} />
-            <Route path="/auth" element={<AnimatedRoute><Auth /></AnimatedRoute>} />
-            <Route path="/dashboard" element={<AnimatedRoute><Dashboard /></AnimatedRoute>} />
-            <Route path="/nfts" element={<AnimatedRoute><NFTBalance /></AnimatedRoute>} />
-            <Route path="/nft/:id" element={<AnimatedRoute><NFTDetail /></AnimatedRoute>} />
-            <Route path="/nft-creator" element={<AnimatedRoute><NFTCreator /></AnimatedRoute>} />
-            <Route path="/rewards" element={<AnimatedRoute><Rewards /></AnimatedRoute>} />
-            <Route path="/settings" element={<AnimatedRoute><Settings /></AnimatedRoute>} />
-            <Route path="/balance" element={<AnimatedRoute><Balance /></AnimatedRoute>} />
-            <Route path="/withdrawal" element={<AnimatedRoute><SolanaWithdrawal /></AnimatedRoute>} />
-            <Route path="/currency-deposit" element={<AnimatedRoute><CurrencyDeposit /></AnimatedRoute>} />
-            <Route path="/mining" element={<AnimatedRoute><Mining /></AnimatedRoute>} />
-            <Route path="/marketplace" element={<AnimatedRoute><Marketplace /></AnimatedRoute>} />
-            <Route path="/projects" element={<AnimatedRoute><Projects /></AnimatedRoute>} />
-            <Route path="/bounties" element={<AnimatedRoute><BugBounties /></AnimatedRoute>} />
-            <Route path="/bug-bounties" element={<AnimatedRoute><BugBountiesView /></AnimatedRoute>} />
-            <Route path="/bounty/:id/complete" element={<AnimatedRoute><BountyCompletion /></AnimatedRoute>} />
-            <Route path="/bounty/:id/review" element={<AnimatedRoute><BountyReview /></AnimatedRoute>} />
-            <Route path="/pricing" element={<AnimatedRoute><Pricing /></AnimatedRoute>} />
-            <Route path="/cart" element={<AnimatedRoute><Cart /></AnimatedRoute>} />
-            <Route path="/payment" element={<AnimatedRoute><Payment /></AnimatedRoute>} />
-            <Route path="/payment-success" element={<AnimatedRoute><PaymentSuccess /></AnimatedRoute>} />
-            <Route path="/learn-more" element={<AnimatedRoute><LearnMore /></AnimatedRoute>} />
-            <Route path="*" element={<AnimatedRoute><NotFound /></AnimatedRoute>} />
-          </Routes>
-        </AnimatePresence>
+        <Routes>
+          <Route path="/" element={<P><Index /></P>} />
+          <Route path="/auth" element={<P><Auth /></P>} />
+          <Route path="/dashboard" element={<P><Dashboard /></P>} />
+          <Route path="/nfts" element={<P><NFTBalance /></P>} />
+          <Route path="/nft/:id" element={<P><NFTDetail /></P>} />
+          <Route path="/nft-creator" element={<P><NFTCreator /></P>} />
+          <Route path="/rewards" element={<P><Rewards /></P>} />
+          <Route path="/settings" element={<P><Settings /></P>} />
+          <Route path="/balance" element={<P><Balance /></P>} />
+          <Route path="/withdrawal" element={<P><SolanaWithdrawal /></P>} />
+          <Route path="/currency-deposit" element={<P><CurrencyDeposit /></P>} />
+          <Route path="/mining" element={<P><Mining /></P>} />
+          <Route path="/marketplace" element={<P><Marketplace /></P>} />
+          <Route path="/projects" element={<P><Projects /></P>} />
+          <Route path="/bounties" element={<P><BugBounties /></P>} />
+          <Route path="/bug-bounties" element={<P><BugBountiesView /></P>} />
+          <Route path="/bounty/:id/complete" element={<P><BountyCompletion /></P>} />
+          <Route path="/bounty/:id/review" element={<P><BountyReview /></P>} />
+          <Route path="/pricing" element={<P><Pricing /></P>} />
+          <Route path="/cart" element={<P><Cart /></P>} />
+          <Route path="/payment" element={<P><Payment /></P>} />
+          <Route path="/payment-success" element={<P><PaymentSuccess /></P>} />
+          <Route path="/learn-more" element={<P><LearnMore /></P>} />
+          <Route path="*" element={<P><NotFound /></P>} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
