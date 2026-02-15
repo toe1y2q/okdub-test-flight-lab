@@ -13,7 +13,7 @@ import Leaderboard from '@/components/Leaderboard';
 import ImprovedNFTMinter from '@/components/ImprovedNFTMinter';
 import TestingEngine from '@/components/TestingEngine';
 import TokenGatedAccess from '@/components/TokenGatedAccess';
-import { LogOut, Zap, TrendingUp, Trophy, Palette, Code, Briefcase, Bug, ShoppingBag, Coins, DollarSign, Wallet, ArrowUpRight } from 'lucide-react';
+import { LogOut, Zap, TrendingUp, Trophy, Palette, Code, Briefcase, Bug, ShoppingBag, Coins, DollarSign, Wallet, ArrowUpRight, HeartPulse } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, loading, signOut, isAuthenticated } = useAuth();
@@ -362,6 +362,19 @@ const Dashboard = () => {
                 <p className="text-gray-400 text-xs sm:text-sm">Convert points to cash</p>
               </div>
               <Coins className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400 group-hover:scale-110 transition-transform" />
+            </div>
+          </Card>
+
+          <Card 
+            className="p-4 sm:p-6 backdrop-blur-xl bg-white/5 border border-white/10 hover:border-teal-500/30 transition-all duration-300 cursor-pointer group"
+            onClick={() => navigate('/wallet-health')}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm sm:text-lg font-semibold text-white mb-2">Wallet Health</h3>
+                <p className="text-gray-400 text-xs sm:text-sm">Check wallet connections</p>
+              </div>
+              <HeartPulse className="w-6 h-6 sm:w-8 sm:h-8 text-teal-400 group-hover:scale-110 transition-transform" />
             </div>
           </Card>
         </motion.div>

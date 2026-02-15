@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Starfield } from '@/components/Starfield';
-import { LogOut, Zap, User, Wallet, Save, Eye, EyeOff } from 'lucide-react';
+import { LogOut, Zap, User, Wallet, Save, Eye, EyeOff, Key } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface UserProfile {
@@ -26,6 +26,9 @@ const Settings = () => {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
+  const [flutterwaveKey, setFlutterwaveKey] = useState('');
+  const [showFwKey, setShowFwKey] = useState(false);
+  const [savingFwKey, setSavingFwKey] = useState(false);
 
   // Form state
   const [firstName, setFirstName] = useState('');
@@ -41,6 +44,7 @@ const Settings = () => {
   useEffect(() => {
     if (isAuthenticated && user) {
       fetchProfile();
+      fetchFlutterwaveKey();
     }
   }, [isAuthenticated, user]);
 
@@ -64,6 +68,40 @@ const Settings = () => {
       console.error('Error fetching profile:', error);
     } finally {
       setLoadingProfile(false);
+    }
+  };
+
+  const fetchFlutterwaveKey = async () => {
+    if (!user) return;
+    try {
+      const { data } = await (supabase as any)
+        .from('app_settings')
+        .select('setting_value')
+        .eq('user_id', user.id)
+        .eq('setting_key', 'flutterwave_public_key')
+        .maybeSingle();
+      if (data?.setting_value) setFlutterwaveKey(data.setting_value);
+    } catch {}
+  };
+
+  const handleSaveFwKey = async () => {
+    if (!user || !flutterwaveKey.trim()) return;
+    setSavingFwKey(true);
+    try {
+      const { error } = await (supabase as any)
+        .from('app_settings')
+        .upsert({
+          user_id: user.id,
+          setting_key: 'flutterwave_public_key',
+          setting_value: flutterwaveKey.trim(),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,setting_key' });
+      if (error) throw error;
+      toast.success('Flutterwave key saved!');
+    } catch {
+      toast.error('Failed to save key');
+    } finally {
+      setSavingFwKey(false);
     }
   };
 
@@ -292,6 +330,44 @@ const Settings = () => {
                     {user?.id.slice(0, 8)}...
                   </span>
                 </div>
+              </div>
+            </Card>
+
+            {/* API Keys */}
+            <Card className="p-6 backdrop-blur-xl bg-white/5 border border-white/10">
+              <div className="flex items-center space-x-3 mb-4">
+                <Key className="w-5 h-5 text-yellow-400" />
+                <h3 className="text-lg font-bold text-white">API Keys</h3>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Flutterwave Public Key</label>
+                  <div className="relative">
+                    <Input
+                      type={showFwKey ? 'text' : 'password'}
+                      value={flutterwaveKey}
+                      onChange={(e) => setFlutterwaveKey(e.target.value)}
+                      className="bg-slate-800/50 border-slate-700 text-white placeholder-gray-400 pr-10"
+                      placeholder="FLWPUBK-..."
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowFwKey(!showFwKey)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                      {showFwKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleSaveFwKey}
+                  disabled={savingFwKey || !flutterwaveKey.trim()}
+                  size="sm"
+                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+                >
+                  <Save className="w-3 h-3 mr-2" />
+                  {savingFwKey ? 'Saving...' : 'Save Key'}
+                </Button>
               </div>
             </Card>
 

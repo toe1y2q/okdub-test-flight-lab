@@ -32,6 +32,9 @@ const CurrencyDeposit = lazy(() => import("./pages/CurrencyDeposit"));
 const Mining = lazy(() => import("./pages/Mining"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const LearnMore = lazy(() => import("./pages/LearnMore"));
+const Install = lazy(() => import("./pages/Install"));
+const Sandbox = lazy(() => import("./pages/Sandbox"));
+const WalletHealth = lazy(() => import("./pages/WalletHealth"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -80,6 +83,9 @@ const App = () => (
           <Route path="/payment" element={<P><Payment /></P>} />
           <Route path="/payment-success" element={<P><PaymentSuccess /></P>} />
           <Route path="/learn-more" element={<P><LearnMore /></P>} />
+          <Route path="/install" element={<P><Install /></P>} />
+          <Route path="/sandbox" element={<P><Sandbox /></P>} />
+          <Route path="/wallet-health" element={<P><WalletHealth /></P>} />
           <Route path="*" element={<P><NotFound /></P>} />
         </Routes>
       </BrowserRouter>
